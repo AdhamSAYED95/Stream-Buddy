@@ -17,10 +17,6 @@ import HelloWorld from './components/HelloWorld.vue'
       <HelloWorld msg="Hello from Vue + Electron" />
     </div>
   </header>
-
-  <main>
-    <TheWelcome />
-  </main>
 </template>
 
 <style scoped>

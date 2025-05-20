@@ -20,7 +20,7 @@ const createWindow = () => {
   const isDev = !app.isPackaged
 
   if (isDev) {
-    console.log('Developmentss mode, loading Vite dev server')
+    console.log('Development mode, loading Vite dev server')
     win.loadURL('http://localhost:5173').catch((err) => {
       console.error('Failed to load Vite dev server:', err)
     })
