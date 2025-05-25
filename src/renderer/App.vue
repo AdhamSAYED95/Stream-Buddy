@@ -1,11 +1,7 @@
 <script setup>
-import HelloWorld from './components/HelloWorld.vue'
+import BracetsView from './components/BracetsView.vue'
 </script>
 
 <template>
-  <header>
-    <div class="wrapper">
-      <HelloWorld msg="Welcome To Stream Buddy Prototype" />
-    </div>
-  </header>
+  <BracetsView />
 </template>
