@@ -24,6 +24,7 @@ const createWindow = () => {
     win.loadURL('http://localhost:5173').catch((err) => {
       console.error('Failed to load Vite dev server:', err)
     })
+    win.webContents.openDevTools({ mode: 'bottom', activate: true })
   } else {
     console.log('Production mode, loading built app')
     win.loadFile(path.join(__dirname, '../../dist/index.html')).catch((err) => {

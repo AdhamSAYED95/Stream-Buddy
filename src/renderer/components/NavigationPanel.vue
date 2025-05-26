@@ -8,12 +8,17 @@ import { RouterLink } from 'vue-router'
       <v-list density="compact" nav>
         <v-list-item>
           <RouterLink to="/TeamsView" class="nav-link">
-            <v-list-item-title>Teams</v-list-item-title>
+            <v-list-item-title>Tournament Teams</v-list-item-title>
           </RouterLink>
         </v-list-item>
         <v-list-item>
           <RouterLink to="/PlayerStats" class="nav-link">
             <v-list-item-title>Player Stats</v-list-item-title>
+          </RouterLink>
+        </v-list-item>
+        <v-list-item>
+          <RouterLink to="/TodayMatches" class="nav-link">
+            <v-list-item-title>Today Matches</v-list-item-title>
           </RouterLink>
         </v-list-item>
       </v-list>

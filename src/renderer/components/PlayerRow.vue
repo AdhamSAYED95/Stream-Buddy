@@ -128,7 +128,15 @@ onUnmounted(() => {
           flat
         >
           <template v-slot:append-inner>
-            <v-btn small text class="add-button-file" :ripple="false"> + ADD </v-btn>
+            <v-btn
+              v-if="!props.player.HeroImage"
+              small
+              text
+              class="add-button-file"
+              :ripple="false"
+            >
+              + ADD
+            </v-btn>
           </template>
         </v-file-input>
       </v-col>

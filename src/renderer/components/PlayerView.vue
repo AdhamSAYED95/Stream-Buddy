@@ -23,7 +23,6 @@ const initializePlayers = () => {
 }
 
 const updatePlayer = (updatedPlayer) => {
-  // Renamed from updateTeam for clarity
   const index = players.value.findIndex((p) => p.id === updatedPlayer.id)
   if (index !== -1) {
     players.value[index] = updatedPlayer

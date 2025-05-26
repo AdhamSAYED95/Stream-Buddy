@@ -1,7 +1,7 @@
 <script setup>
 import { ref, watch, onUnmounted } from 'vue'
 
-const emit = defineEmits(['update:team'])
+const emit = defineEmits(['update-team'])
 
 const props = defineProps({
   team: {
@@ -14,9 +14,12 @@ const imagePreviewUrl = ref('')
 const flagPreviewUrl = ref('')
 
 const createPreview = (file, previewUrlRef) => {
+  // Clean up existing URL
   if (previewUrlRef.value) {
     URL.revokeObjectURL(previewUrlRef.value)
   }
+
+  // Handle the file input
   if (file instanceof File) {
     previewUrlRef.value = URL.createObjectURL(file)
   } else if (typeof file === 'string' && file) {
@@ -41,7 +44,10 @@ watch(
   },
   { immediate: true },
 )
-const handleImageFileChange = (file) => {
+
+const handleImageFileChange = (fileInput) => {
+  // v-file-input emits an array; take the first file or null
+  const file = Array.isArray(fileInput) ? fileInput[0] || null : fileInput
   const updatedTeam = {
     ...props.team,
     imageFile: file,
@@ -49,7 +55,9 @@ const handleImageFileChange = (file) => {
   emit('update-team', updatedTeam)
 }
 
-const handleFlagFileChange = (file) => {
+const handleFlagFileChange = (fileInput) => {
+  // v-file-input emits an array; take the first file or null
+  const file = Array.isArray(fileInput) ? fileInput[0] || null : fileInput
   const updatedTeam = {
     ...props.team,
     flagFile: file,
@@ -73,6 +81,7 @@ onUnmounted(() => {
   })
 })
 </script>
+
 <template>
   <div class="team-row-container">
     <v-row align="center" no-gutters class="team-row">
@@ -89,7 +98,9 @@ onUnmounted(() => {
           flat
         >
           <template v-slot:append-inner>
-            <v-btn small text class="add-button-file" :ripple="false">+ ADD</v-btn>
+            <v-btn v-if="!props.team.imageFile" small text class="add-button-file" :ripple="false">
+              + ADD
+            </v-btn>
           </template>
         </v-file-input>
       </v-col>
@@ -107,7 +118,9 @@ onUnmounted(() => {
           flat
         >
           <template v-slot:append-inner>
-            <v-btn small text class="add-button-file" :ripple="false"> + ADD </v-btn>
+            <v-btn v-if="!props.team.flagFile" small text class="add-button-file" :ripple="false">
+              + ADD
+            </v-btn>
           </template>
         </v-file-input>
       </v-col>

@@ -32,7 +32,7 @@ onMounted(() => {
 
 <template>
   <div class="brackets-view">
-    <h1>Tournament Brackets</h1>
+    <h1>Tournament Teams</h1>
     <div v-if="teams.length">
       <TeamRow v-for="team in teams" :key="team.id" :team="team" @update-team="updateTeam" />
     </div>
