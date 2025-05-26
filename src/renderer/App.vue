@@ -1,9 +1,9 @@
 <script setup>
-import BracetsView from './components/BracetsView.vue'
+import NavigationPanel from './components/NavigationPanel.vue'
 </script>
 
 <template>
-  <BracetsView />
+  <NavigationPanel />
 </template>
 
 <style>
