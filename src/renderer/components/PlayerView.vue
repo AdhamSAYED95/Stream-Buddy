@@ -35,7 +35,7 @@ onMounted(() => {
 
 <template>
   <div class="brackets-view">
-    <h1>Player Stats</h1>
+    <h1>Players Stats</h1>
     <div v-if="players.length">
       <PlayerRow
         v-for="player in players"

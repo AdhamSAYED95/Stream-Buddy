@@ -1,5 +1,6 @@
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, ipcMain } from 'electron'
 import path from 'path'
+import * as fs from 'node:fs/promises'
 import { fileURLToPath } from 'url'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -32,6 +33,17 @@ const createWindow = () => {
     })
   }
 }
+
+ipcMain.handle('read-file', async (event, filePath) => {
+  try {
+    const data = await fs.readFile(filePath, 'utf8')
+    console.log('File content:', data)
+    return data
+  } catch (err) {
+    console.error('Error reading file in main process:', err)
+    throw err
+  }
+})
 
 app.whenReady().then(() => {
   createWindow()

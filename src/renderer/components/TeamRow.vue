@@ -13,13 +13,11 @@ const props = defineProps({
 const imagePreviewUrl = ref('')
 const flagPreviewUrl = ref('')
 
+// Lazy-load previews only when a file is selected
 const createPreview = (file, previewUrlRef) => {
-  // Clean up existing URL
   if (previewUrlRef.value) {
     URL.revokeObjectURL(previewUrlRef.value)
   }
-
-  // Handle the file input
   if (file instanceof File) {
     previewUrlRef.value = URL.createObjectURL(file)
   } else if (typeof file === 'string' && file) {
@@ -46,7 +44,6 @@ watch(
 )
 
 const handleImageFileChange = (fileInput) => {
-  // v-file-input emits an array; take the first file or null
   const file = Array.isArray(fileInput) ? fileInput[0] || null : fileInput
   const updatedTeam = {
     ...props.team,
@@ -56,7 +53,6 @@ const handleImageFileChange = (fileInput) => {
 }
 
 const handleFlagFileChange = (fileInput) => {
-  // v-file-input emits an array; take the first file or null
   const file = Array.isArray(fileInput) ? fileInput[0] || null : fileInput
   const updatedTeam = {
     ...props.team,
@@ -71,6 +67,22 @@ const handleClearImage = () => {
 
 const handleClearFlag = () => {
   handleFlagFileChange(null)
+}
+
+const handleNameChange = (value) => {
+  const updatedTeam = {
+    ...props.team,
+    name: value,
+  }
+  emit('update-team', updatedTeam)
+}
+
+const handleScoreChange = (value) => {
+  const updatedTeam = {
+    ...props.team,
+    score: Number(value),
+  }
+  emit('update-team', updatedTeam)
 }
 
 onUnmounted(() => {
@@ -129,7 +141,7 @@ onUnmounted(() => {
         <v-text-field
           label="Team Name"
           :model-value="props.team.name"
-          @update:model-value="(value) => emit('update-team', { ...props.team, name: value })"
+          @update:model-value="handleNameChange"
           type="text"
           hide-details="auto"
           class="custom-text-input"
@@ -142,9 +154,7 @@ onUnmounted(() => {
         <v-text-field
           label="Team Score"
           :model-value="props.team.score"
-          @update:model-value="
-            (value) => emit('update-team', { ...props.team, score: Number(value) })
-          "
+          @update:model-value="handleScoreChange"
           type="number"
           min="0"
           hide-details="auto"
@@ -162,16 +172,19 @@ onUnmounted(() => {
   background-color: #1e2a38;
   color: #ffffff;
   border-bottom: 1px solid #2c3e50;
+  transition: all 0.1s ease; /* Smooth transitions for layout changes */
 }
 
 .team-row {
   background-color: #1e2a38;
+  will-change: transform; /* Optimize for GPU acceleration */
 }
 
 .custom-file-input,
 .custom-text-input {
   border-radius: 10px;
   overflow: hidden;
+  transition: all 0.1s ease; /* Smooth transitions for input changes */
 }
 
 .custom-file-input .v-field__overlay,
@@ -179,6 +192,7 @@ onUnmounted(() => {
 .custom-file-input .v-field__field,
 .custom-text-input .v-field__field {
   background-color: #2c3e50 !important;
+  transition: background-color 0.1s ease; /* Smooth background changes */
 }
 
 .custom-file-input .v-input__control,
@@ -191,6 +205,7 @@ onUnmounted(() => {
   border-radius: 4px !important;
   min-height: 48px !important;
   padding: 0 12px;
+  will-change: transform; /* Optimize for GPU acceleration */
 }
 
 .custom-file-input .v-label,
@@ -203,11 +218,13 @@ onUnmounted(() => {
   top: 50% !important;
   left: 12px !important;
   pointer-events: none;
+  transition: all 0.1s ease; /* Smooth label transitions */
 }
 
 .custom-file-input .v-field__input,
 .custom-text-input .v-field__input {
   color: #ffffff !important;
+  will-change: transform; /* Optimize for GPU acceleration */
 }
 
 .custom-file-input .v-field__input::placeholder,
@@ -219,11 +236,13 @@ onUnmounted(() => {
 .custom-file-input .v-file-input__text {
   color: #ffffff;
   padding-right: 50px;
+  transition: all 0.1s ease; /* Smooth text changes */
 }
 
 .custom-text-input input {
   color: #ffffff;
   padding-right: 40px;
+  transition: all 0.1s ease; /* Smooth text changes */
 }
 
 .add-button-file {
@@ -239,12 +258,14 @@ onUnmounted(() => {
   position: absolute;
   right: 0;
   top: 0;
+  transition: all 0.1s ease; /* Smooth button transitions */
 }
 
 .custom-text-input .v-input__append-inner .v-icon {
   color: #ffffff !important;
   font-size: 18px !important;
   margin-right: 8px;
+  transition: all 0.1s ease; /* Smooth icon transitions */
 }
 
 .custom-file-input .v-input__prepend-inner,
