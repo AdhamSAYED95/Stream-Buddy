@@ -40,8 +40,6 @@ const updateMatches = (updatedMatches) => {
 <style scoped>
 .matches-view {
   padding: 20px;
-  background-color: #1e2a38;
-  color: #ffffff;
   font-family: Arial, sans-serif;
 }
 

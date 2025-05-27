@@ -22,7 +22,6 @@ const updateTeam = (updatedTeam) => {
   const index = teams.value.findIndex((t) => t.id === updatedTeam.id)
   if (index !== -1) {
     teams.value[index] = updatedTeam
-    console.log('Updated Team:', updatedTeam)
   }
 }
 
@@ -38,7 +37,7 @@ onMounted(() => {
 
 <template>
   <div class="brackets-view">
-    <h1>Brackets</h1>
+    <h1>Brackets View</h1>
     <!-- <v-btn color="primary" class="mb-4" @click="logAllTeams">Show All Teams' Values</v-btn> -->
     <div v-if="teams.length">
       <v-virtual-scroll :items="teams" height="calc(100vh - 80px)" item-height="48">

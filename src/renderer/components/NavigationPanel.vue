@@ -14,7 +14,7 @@ import { RouterLink } from 'vue-router'
           </v-list-item>
           <v-list-item prepend-icon="mdi-tournament">
             <RouterLink to="/TeamsView" class="nav-link">
-              <v-list-item-title>Brackets</v-list-item-title>
+              <v-list-item-title>Brackets View</v-list-item-title>
             </RouterLink>
           </v-list-item>
           <v-list-item prepend-icon="mdi-account-star">
@@ -30,9 +30,11 @@ import { RouterLink } from 'vue-router'
         </v-list>
       </v-navigation-drawer>
       <v-main class="main-content">
-        <Transition name="fade" mode="out-in">
-          <router-view />
-        </Transition>
+        <router-view v-slot="{ Component }">
+          <Transition name="fade" mode="out-in">
+            <component :is="Component" />
+          </Transition>
+        </router-view>
       </v-main>
     </v-layout>
   </v-app>

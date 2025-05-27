@@ -53,167 +53,195 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="player-stats-row-container">
-    <v-row no-gutters class="player-stats-row input-spacing">
-      <v-col cols="12" class="pa-1 input-spacing">
-        <v-text-field
-          label="Player Name"
-          :model-value="props.player.PlayerName"
-          @update:model-value="
-            (value) => emit('update-player', { ...props.player, PlayerName: value })
-          "
-          type="text"
-          hide-details="auto"
-          class="custom-text-input"
-          append-inner-icon="mdi-pencil"
-          flat
-        ></v-text-field>
-      </v-col>
-      <v-col cols="12" class="pa-1 input-spacing">
-        <v-text-field
-          label="Team Name"
-          :model-value="props.player.TeamName"
-          @update:model-value="
-            (value) => emit('update-player', { ...props.player, TeamName: value })
-          "
-          type="text"
-          hide-details="auto"
-          class="custom-text-input"
-          append-inner-icon="mdi-pencil"
-          flat
-        ></v-text-field>
-      </v-col>
-
-      <v-col cols="12" class="pa-1 input-spacing">
-        <v-text-field
-          label="Favorite Weapon"
-          :model-value="props.player.FavouriteWeapon"
-          @update:model-value="
-            (value) => emit('update-player', { ...props.player, FavouriteWeapon: value })
-          "
-          type="text"
-          hide-details="auto"
-          class="custom-text-input"
-          append-inner-icon="mdi-pencil"
-          flat
-        ></v-text-field>
-      </v-col>
-
-      <v-col cols="12" class="pa-1 input-spacing">
-        <v-text-field
-          label="Economy Score"
-          :model-value="props.player.EconomyScore"
-          @update:model-value="
-            (value) => emit('update-player', { ...props.player, EconomyScore: Number(value) })
-          "
-          type="number"
-          min="0"
-          hide-details="auto"
-          class="custom-text-input"
-          append-inner-icon="mdi-pencil"
-          flat
-        ></v-text-field>
-      </v-col>
-
-      <v-col cols="12" class="pa-1 input-spacing">
-        <v-file-input
-          :label="heroImagePreviewUrl ? '' : 'Hero Image'"
-          :model-value="props.player.HeroImage"
-          accept="image/*"
-          hide-details="auto"
-          class="custom-file-input"
-          prepend-icon=""
-          @update:model-value="handleHeroImageChange"
-          @click:clear="handleClearHeroImage"
-          flat
-        >
-          <template v-slot:append-inner>
-            <v-btn
-              v-if="!props.player.HeroImage"
-              small
-              text
-              class="add-button-file"
-              :ripple="false"
+  <div class="player-stats-panel-container">
+    <v-row no-gutters class="panel-row">
+      <v-col cols="12" class="pa-1">
+        <v-card class="player-stats-panel" flat>
+          <v-col cols="12" class="pa-1 input-spacing">
+            <v-text-field
+              label="Player Name"
+              :model-value="props.player.PlayerName"
+              @update:model-value="
+                (value) => emit('update-player', { ...props.player, PlayerName: value })
+              "
+              type="text"
+              hide-details="auto"
+              class="custom-text-input"
+              append-inner-icon="mdi-pencil"
+              flat
+            ></v-text-field>
+          </v-col>
+          <v-col cols="12" class="pa-1 input-spacing">
+            <v-text-field
+              label="Team Name"
+              :model-value="props.player.TeamName"
+              @update:model-value="
+                (value) => emit('update-player', { ...props.player, TeamName: value })
+              "
+              type="text"
+              hide-details="auto"
+              class="custom-text-input"
+              append-inner-icon="mdi-pencil"
+              flat
+            ></v-text-field>
+          </v-col>
+          <v-col cols="12" class="pa-1 input-spacing">
+            <v-text-field
+              label="Favorite Weapon"
+              :model-value="props.player.FavouriteWeapon"
+              @update:model-value="
+                (value) => emit('update-player', { ...props.player, FavouriteWeapon: value })
+              "
+              type="text"
+              hide-details="auto"
+              class="custom-text-input"
+              append-inner-icon="mdi-pencil"
+              flat
+            ></v-text-field>
+          </v-col>
+          <v-col cols="12" class="pa-1 input-spacing">
+            <v-text-field
+              label="Economy Score"
+              :model-value="props.player.EconomyScore"
+              @update:model-value="
+                (value) => emit('update-player', { ...props.player, EconomyScore: Number(value) })
+              "
+              type="number"
+              min="0"
+              hide-details="auto"
+              class="custom-text-input"
+              append-inner-icon="mdi-pencil"
+              flat
+            ></v-text-field>
+          </v-col>
+          <v-col cols="12" class="pa-1 input-spacing">
+            <v-file-input
+              :label="heroImagePreviewUrl ? '' : 'Hero Image'"
+              :model-value="props.player.HeroImage"
+              accept="image/*"
+              hide-details="auto"
+              class="custom-file-input"
+              prepend-icon=""
+              @update:model-value="handleHeroImageChange"
+              @click:clear="handleClearHeroImage"
+              flat
             >
-              + ADD
-            </v-btn>
-          </template>
-        </v-file-input>
-      </v-col>
-
-      <v-col cols="12" class="pa-1 input-spacing">
-        <v-text-field
-          label="Kills"
-          :model-value="props.player.Kills"
-          @update:model-value="
-            (value) => emit('update-player', { ...props.player, Kills: Number(value) })
-          "
-          type="number"
-          min="0"
-          hide-details="auto"
-          class="custom-text-input"
-          append-inner-icon="mdi-pencil"
-          flat
-        ></v-text-field>
-      </v-col>
-
-      <v-col cols="12" class="pa-1 input-spacing">
-        <v-text-field
-          label="Deaths"
-          :model-value="props.player.Deaths"
-          @update:model-value="
-            (value) => emit('update-player', { ...props.player, Deaths: Number(value) })
-          "
-          type="number"
-          min="0"
-          hide-details="auto"
-          class="custom-text-input"
-          append-inner-icon="mdi-pencil"
-          flat
-        ></v-text-field>
-      </v-col>
-
-      <v-col cols="12" class="pa-1 input-spacing">
-        <v-text-field
-          label="Assists"
-          :model-value="props.player.Assists"
-          @update:model-value="
-            (value) => emit('update-player', { ...props.player, Assists: Number(value) })
-          "
-          type="number"
-          min="0"
-          hide-details="auto"
-          class="custom-text-input"
-          append-inner-icon="mdi-pencil"
-          flat
-        ></v-text-field>
+              <template v-slot:append-inner>
+                <v-btn
+                  v-if="!props.player.HeroImage"
+                  small
+                  text
+                  class="add-button-file"
+                  :ripple="false"
+                >
+                  + ADD
+                </v-btn>
+              </template>
+            </v-file-input>
+          </v-col>
+          <v-col cols="12" class="pa-1 input-spacing">
+            <v-text-field
+              label="Kills"
+              :model-value="props.player.Kills"
+              @update:model-value="
+                (value) => emit('update-player', { ...props.player, Kills: Number(value) })
+              "
+              type="number"
+              min="0"
+              hide-details="auto"
+              class="custom-text-input"
+              append-inner-icon="mdi-pencil"
+              flat
+            ></v-text-field>
+          </v-col>
+          <v-col cols="12" class="pa-1 input-spacing">
+            <v-text-field
+              label="Deaths"
+              :model-value="props.player.Deaths"
+              @update:model-value="
+                (value) => emit('update-player', { ...props.player, Deaths: Number(value) })
+              "
+              type="number"
+              min="0"
+              hide-details="auto"
+              class="custom-text-input"
+              append-inner-icon="mdi-pencil"
+              flat
+            ></v-text-field>
+          </v-col>
+          <v-col cols="12" class="pa-1 input-spacing">
+            <v-text-field
+              label="Assists"
+              :model-value="props.player.Assists"
+              @update:model-value="
+                (value) => emit('update-player', { ...props.player, Assists: Number(value) })
+              "
+              type="number"
+              min="0"
+              hide-details="auto"
+              class="custom-text-input"
+              append-inner-icon="mdi-pencil"
+              flat
+            ></v-text-field>
+          </v-col>
+        </v-card>
       </v-col>
     </v-row>
   </div>
 </template>
 
 <style scoped>
-.player-stats-row-container {
-  background-color: #1e2a38;
+/* Main container for the entire player stats panel */
+.player-stats-panel-container {
+  background-color: #1e2a38; /* Background of the area holding this panel */
   color: #ffffff;
-  border-bottom: 1px solid #2c3e50;
-  margin-bottom: 8px;
+  padding: 8px; /* Consistent outer padding */
+  /* Remove width/max-width here. Let the parent (v-main/v-col) control width. */
+}
+
+/* Row containing the single panel */
+.panel-row {
+  background-color: #1e2a38; /* Matches the container background */
+  margin-bottom: 16px; /* Space between multiple player panels if used in a list */
+}
+
+/* The v-card that acts as the panel itself */
+.player-stats-panel {
+  background-color: #1e2a38 !important; /* Ensure dark background */
+  border: 1px solid #2c3e50; /* Border from your previous styles */
   border-radius: 4px;
+  padding: 0 8px 8px 8px; /* Padding inside the card for content */
+  box-sizing: border-box; /* Include padding/border in element's total width/height */
+  width: 100%; /* Take full width of its parent v-col */
 }
 
+.panel-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: #ffffff;
+  padding: 8px 0;
+  text-transform: uppercase;
+}
+
+/* Spacing between individual input fields */
 .input-spacing {
-  margin-bottom: 15px;
+  margin-bottom: 12px; /* Slightly reduced for tighter stacking */
+  /* Remove any horizontal padding here, v-card padding handles it */
 }
 
-.player-stats-row {
-  background-color: #1e2a38;
-  padding: 8px;
+/* Remove margin-bottom from the last input field */
+.input-spacing:last-child {
+  margin-bottom: 0;
 }
+
+/* --- Existing Input Field Styles (mostly kept as is) --- */
 
 .custom-file-input,
 .custom-text-input {
   border-radius: 4px;
   overflow: hidden;
+  width: 100%; /* Ensure inputs take full width of their v-col */
+  max-width: 100%;
 }
 
 .custom-file-input .v-field__overlay,
@@ -231,15 +259,16 @@ onUnmounted(() => {
   border: 1px solid rgba(255, 255, 255, 0.2) !important;
   box-shadow: none !important;
   border-radius: 4px !important;
-  min-height: 48px !important;
+  min-height: 48px !important; /* Kept previous height for consistency */
   padding: 0 12px;
+  width: 100%;
+  max-width: 100%;
 }
 
-/* Label styling */
 .custom-file-input .v-label,
 .custom-text-input .v-label {
   color: #ffffff !important;
-  font-size: 14px !important;
+  font-size: 14px !important; /* Kept previous font-size */
   font-weight: bold;
   opacity: 1 !important;
   transform: translateY(-50%) scale(1) !important;
@@ -252,6 +281,7 @@ onUnmounted(() => {
 .custom-text-input .v-field__input {
   color: #ffffff !important;
 }
+
 .custom-file-input .v-field__input::placeholder,
 .custom-text-input .v-field__input::placeholder {
   color: #ffffff !important;
@@ -272,20 +302,27 @@ onUnmounted(() => {
   color: #00c853 !important;
   font-weight: bold;
   text-transform: uppercase;
-  font-size: 12px;
+  font-size: 12px; /* Kept previous font-size */
   padding: 0 8px;
   min-width: auto;
-  height: 100%;
+  height: 100%; /* Adjusted height to match input height */
   border-radius: 0 4px 4px 0;
   background-color: #2c3e50;
   position: absolute;
   right: 0;
-  top: 30;
+  top: 0; /* Align to top of input */
+  transition: all 0.1s ease;
 }
 
 .custom-text-input .v-input__append-inner .v-icon {
   color: #ffffff !important;
   font-size: 18px !important;
+  margin-right: 8px;
+  transition: all 0.1s ease;
+}
+
+.custom-file-input .v-input__append-inner .v-icon {
+  color: #ffffff !important;
   margin-right: 8px;
 }
 

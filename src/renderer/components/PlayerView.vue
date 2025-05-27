@@ -34,7 +34,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="brackets-view">
+  <div class="players-view">
     <h1>Players Stats</h1>
     <div v-if="players.length">
       <PlayerRow
@@ -51,9 +51,10 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.brackets-view {
+.players-view {
   padding: 20px;
   font-family: Arial, sans-serif;
+  height: 100%;
 }
 
 h1 {
