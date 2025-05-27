@@ -3,30 +3,37 @@ import { RouterLink } from 'vue-router'
 </script>
 
 <template>
-  <v-layout>
-    <v-navigation-drawer expand-on-hover rail>
-      <v-list density="compact" nav>
-        <v-list-item>
-          <RouterLink to="/TeamsView" class="nav-link">
-            <v-list-item-title>Tournament Teams</v-list-item-title>
-          </RouterLink>
-        </v-list-item>
-        <v-list-item>
-          <RouterLink to="/PlayerStats" class="nav-link">
-            <v-list-item-title>Player Stats</v-list-item-title>
-          </RouterLink>
-        </v-list-item>
-        <v-list-item>
-          <RouterLink to="/TodayMatches" class="nav-link">
-            <v-list-item-title>Today Matches</v-list-item-title>
-          </RouterLink>
-        </v-list-item>
-      </v-list>
-    </v-navigation-drawer>
-    <v-main>
-      <router-view />
-    </v-main>
-  </v-layout>
+  <v-app>
+    <v-layout>
+      <v-navigation-drawer expand-on-hover rail permanent>
+        <v-list density="compact" nav>
+          <v-list-item>
+            <RouterLink to="/" class="nav-link">
+              <v-list-item-title>Home</v-list-item-title>
+            </RouterLink>
+          </v-list-item>
+          <v-list-item>
+            <RouterLink to="/TeamsView" class="nav-link">
+              <v-list-item-title>Tournament Teams</v-list-item-title>
+            </RouterLink>
+          </v-list-item>
+          <v-list-item>
+            <RouterLink to="/PlayerStats" class="nav-link">
+              <v-list-item-title>Player Stats</v-list-item-title>
+            </RouterLink>
+          </v-list-item>
+          <v-list-item>
+            <RouterLink to="/TodayMatches" class="nav-link">
+              <v-list-item-title>Today Matches</v-list-item-title>
+            </RouterLink>
+          </v-list-item>
+        </v-list>
+      </v-navigation-drawer>
+      <v-main>
+        <router-view />
+      </v-main>
+    </v-layout>
+  </v-app>
 </template>
 
 <style scoped>
