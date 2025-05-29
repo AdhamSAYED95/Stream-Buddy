@@ -2,33 +2,52 @@
 import { ref, onMounted } from 'vue'
 import TeamRow from './TeamRow.vue'
 
-const teams = ref([])
+const teams = ref({})
 
 const initializeTeams = () => {
-  const initialTeams = []
-  for (let i = 0; i < 32; i++) {
-    initialTeams.push({
+  const initialTeamsObject = {}
+  for (let i = 1; i < 33; i++) {
+    initialTeamsObject[i] = {
       id: i,
-      imageFile: null,
-      flagFile: null,
-      name: '',
-      score: 0,
-    })
+      TeamImage: null,
+      FlagImage: null,
+      TeamName: '',
+      Score: 0,
+    }
   }
-  teams.value = initialTeams
+  teams.value = initialTeamsObject
 }
 
 const updateTeam = (updatedTeam) => {
-  const index = teams.value.findIndex((t) => t.id === updatedTeam.id)
-  if (index !== -1) {
-    teams.value[index] = updatedTeam
+  if (teams.value[updatedTeam.id]) {
+    teams.value[updatedTeam.id] = updatedTeam
   }
 }
 
-// const logAllTeams = () => {
-//   console.log('All Teams:', teams.value)
-//   // Optionally, you can process or save the data here
-// }
+const transformTeamsForOutput = () => {
+  const outputObject = {}
+  let teamNumber = 1
+
+  for (const teamId in teams.value) {
+    if (Object.prototype.hasOwnProperty.call(teams.value, teamId)) {
+      outputObject[`team${teamNumber}`] = teams.value[teamId]
+      teamNumber++
+    }
+  }
+  return outputObject
+}
+
+const createBracketsJson = async () => {
+  const transformedData = transformTeamsForOutput()
+  const jsonData = JSON.stringify(transformedData, null, 2)
+
+  try {
+    await window.electronAPI.createFile('ViewsData\\BracketsView.json', jsonData)
+    console.log('BracketsView.json created successfully with "teamX" keys!')
+  } catch (error) {
+    console.error('Failed to create BracketsView.json:', error)
+  }
+}
 
 onMounted(() => {
   initializeTeams()
@@ -38,9 +57,9 @@ onMounted(() => {
 <template>
   <div class="brackets-view">
     <h1>Brackets View</h1>
-    <!-- <v-btn color="primary" class="mb-4" @click="logAllTeams">Show All Teams' Values</v-btn> -->
-    <div v-if="teams.length">
-      <v-virtual-scroll :items="teams" height="calc(100vh - 80px)" item-height="48">
+    <v-btn color="primary" class="mb-4" @click="createBracketsJson">Create Brackets File</v-btn>
+    <div v-if="Object.keys(teams).length">
+      <v-virtual-scroll :items="Object.values(teams)" height="calc(100vh - 80px)" item-height="48">
         <template v-slot:default="{ item }">
           <TeamRow :key="item.id" :team="item" @update-team="updateTeam" />
         </template>
@@ -61,6 +80,6 @@ onMounted(() => {
 
 h1 {
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
 }
 </style>

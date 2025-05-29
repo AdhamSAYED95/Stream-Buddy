@@ -2,32 +2,39 @@
 import { ref, onMounted } from 'vue'
 import PlayerRow from './PlayerRow.vue'
 
-const players = ref([])
+const players = ref({
+  PlayerName: '',
+  TeamName: '',
+  FavouriteWeapon: '',
+  EconomyScore: 0,
+  HeroImage: null,
+  Kills: 0,
+  Deaths: 0,
+  Assists: 0,
+})
 
 const initializePlayers = () => {
-  const initialPlayers = []
-  for (let i = 0; i < 1; i++) {
-    initialPlayers.push({
-      id: i,
-      PlayerName: ``,
-      TeamName: ``,
-      FavouriteWeapon: ``,
-      EconomyScore: 0,
-      HeroImage: null,
-      Kills: 0,
-      Deaths: 0,
-      Assists: 0,
-    })
+  players.value = {
+    PlayerName: '',
+    TeamName: '',
+    FavouriteWeapon: '',
+    EconomyScore: 0,
+    HeroImage: null,
+    Kills: 0,
+    Deaths: 0,
+    Assists: 0,
   }
-  players.value = initialPlayers
 }
 
 const updatePlayer = (updatedPlayer) => {
-  const index = players.value.findIndex((p) => p.id === updatedPlayer.id)
-  if (index !== -1) {
-    players.value[index] = updatedPlayer
-  }
+  players.value = { ...players.value, ...updatedPlayer }
 }
+
+const createPlayerJson = async () => {
+  const jsonData = JSON.stringify(players.value, null, 2)
+  await window.electronAPI.createFile('ViewsData\\PlayersStats.json', jsonData)
+}
+
 onMounted(() => {
   initializePlayers()
 })
@@ -36,17 +43,9 @@ onMounted(() => {
 <template>
   <div class="players-view">
     <h1>Players Stats</h1>
-    <div v-if="players.length">
-      <PlayerRow
-        v-for="player in players"
-        :key="player.id"
-        :player="player"
-        @update-player="updatePlayer"
-      />
-    </div>
-    <div v-else>
-      <p>Loading players...</p>
-    </div>
+    <v-btn color="primary" class="mb-4" @click="createPlayerJson">Create Player's file</v-btn>
+
+    <PlayerRow :player="players" @update-player="updatePlayer" />
   </div>
 </template>
 
@@ -59,6 +58,6 @@ onMounted(() => {
 
 h1 {
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
 }
 </style>

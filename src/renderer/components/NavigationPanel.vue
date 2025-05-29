@@ -32,7 +32,9 @@ import { RouterLink } from 'vue-router'
       <v-main class="main-content">
         <router-view v-slot="{ Component }">
           <Transition name="fade" mode="out-in">
-            <component :is="Component" />
+            <keep-alive>
+              <component :is="Component" />
+            </keep-alive>
           </Transition>
         </router-view>
       </v-main>

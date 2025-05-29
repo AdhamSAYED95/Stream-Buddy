@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, onUnmounted } from 'vue'
+import { ref, onUnmounted, computed } from 'vue'
 
 const emit = defineEmits(['update-player'])
 
@@ -11,38 +11,31 @@ const props = defineProps({
 })
 
 const heroImagePreviewUrl = ref('')
+const heroFilePath = ref('')
 
-const createPreview = (file, previewUrlRef) => {
-  if (previewUrlRef.value) {
-    URL.revokeObjectURL(previewUrlRef.value)
-  }
-  if (file instanceof File) {
-    previewUrlRef.value = URL.createObjectURL(file)
-  } else if (typeof file === 'string' && file) {
-    previewUrlRef.value = file
-  } else {
-    previewUrlRef.value = ''
-  }
-}
+const selectImageFile = async (type) => {
+  const result = await window.electronAPI.openFileDialog(type)
+  if (!result) return
 
-watch(
-  () => props.player.HeroImage,
-  (newFile) => {
-    createPreview(newFile, heroImagePreviewUrl)
-  },
-  { immediate: true },
-)
+  const { path } = result
 
-const handleHeroImageChange = (file) => {
-  const updatedPlayer = {
-    ...props.player,
-    HeroImage: file,
+  if (type === 'image') {
+    heroFilePath.value = path // Store full path
+    const updatedPlayer = {
+      ...props.player,
+      HeroImage: path, // Store the full path
+    }
+    emit('update-player', updatedPlayer)
   }
-  emit('update-player', updatedPlayer)
 }
 
 const handleClearHeroImage = () => {
-  handleHeroImageChange(null)
+  heroFilePath.value = ''
+  const updatedPlayer = {
+    ...props.player,
+    HeroImage: null,
+  }
+  emit('update-player', updatedPlayer)
 }
 
 onUnmounted(() => {
@@ -50,6 +43,8 @@ onUnmounted(() => {
     URL.revokeObjectURL(heroImagePreviewUrl.value)
   }
 })
+
+const heroFileName = computed(() => heroFilePath.value.split(/[\\/]/).pop() || '')
 </script>
 
 <template>
@@ -115,29 +110,36 @@ onUnmounted(() => {
             ></v-text-field>
           </v-col>
           <v-col cols="12" class="pa-1 input-spacing">
-            <v-file-input
-              :label="heroImagePreviewUrl ? '' : 'Hero Image'"
-              :model-value="props.player.HeroImage"
-              accept="image/*"
+            <v-text-field
+              :model-value="heroFileName"
+              label="Hero Image"
+              readonly
               hide-details="auto"
-              class="custom-file-input"
-              prepend-icon=""
-              @update:model-value="handleHeroImageChange"
-              @click:clear="handleClearHeroImage"
+              class="custom-text-input"
               flat
             >
               <template v-slot:append-inner>
                 <v-btn
-                  v-if="!props.player.HeroImage"
+                  v-if="!heroFileName"
                   small
                   text
                   class="add-button-file"
+                  @click="selectImageFile('image')"
                   :ripple="false"
                 >
                   + ADD
                 </v-btn>
+                <v-btn
+                  v-if="heroFileName"
+                  small
+                  icon
+                  @click="handleClearHeroImage"
+                  class="clear-button"
+                >
+                  <v-icon>mdi-close</v-icon>
+                </v-btn>
               </template>
-            </v-file-input>
+            </v-text-field>
           </v-col>
           <v-col cols="12" class="pa-1 input-spacing">
             <v-text-field

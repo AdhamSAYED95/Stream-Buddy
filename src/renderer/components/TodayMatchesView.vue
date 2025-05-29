@@ -5,7 +5,7 @@ import TodayPanels from './TodayPanels.vue'
 const matches = ref({
   date: '',
   firstMatch: {
-    time: '',
+    MatchTime: '',
     leftTeamName: '',
     rightTeamName: '',
     leftTeamLogo: null,
@@ -14,7 +14,7 @@ const matches = ref({
     rightTeamFlag: null,
   },
   secondMatch: {
-    time: '',
+    MatchTime: '',
     leftTeamName: '',
     rightTeamName: '',
     leftTeamLogo: null,
@@ -27,10 +27,16 @@ const matches = ref({
 const updateMatches = (updatedMatches) => {
   matches.value = { ...updatedMatches }
 }
+
+const createMatchsJson = async () => {
+  const jsonData = JSON.stringify(matches.value, null, 2)
+  await window.electronAPI.createFile('ViewsData\\todaysmatch.json', jsonData)
+}
 </script>
 <template>
   <div class="matches-view">
     <h1>Today's Matches</h1>
+    <v-btn color="primary" class="mb-4" @click="createMatchsJson">Create All Matches's file</v-btn>
     <div class="matches-container">
       <TodayPanels :matches="matches" @update:matches="updateMatches" />
     </div>
@@ -45,7 +51,7 @@ const updateMatches = (updatedMatches) => {
 
 h1 {
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
   color: #ffffff;
 }
 

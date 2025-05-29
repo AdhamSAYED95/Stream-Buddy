@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, onUnmounted } from 'vue'
+import { ref, onUnmounted, computed } from 'vue'
 
 const emit = defineEmits(['update:matches'])
 
@@ -25,30 +25,6 @@ const previews = {
   },
 }
 
-// Mapping function to convert field names to preview keys
-const getPreviewKey = (field) => {
-  const mapping = {
-    leftTeamLogo: 'leftLogoPreviewUrl',
-    rightTeamLogo: 'rightLogoPreviewUrl',
-    leftTeamFlag: 'leftFlagPreviewUrl',
-    rightTeamFlag: 'rightFlagPreviewUrl',
-  }
-  return mapping[field] || ''
-}
-
-const createPreview = (file, previewUrlRef) => {
-  if (previewUrlRef.value) {
-    URL.revokeObjectURL(previewUrlRef.value)
-  }
-  if (file instanceof File) {
-    previewUrlRef.value = URL.createObjectURL(file)
-  } else if (typeof file === 'string' && file) {
-    previewUrlRef.value = file
-  } else {
-    previewUrlRef.value = ''
-  }
-}
-
 const updateMatchField = (matchKey, field, value) => {
   const updatedMatches = {
     ...props.matches,
@@ -60,58 +36,63 @@ const updateMatchField = (matchKey, field, value) => {
   emit('update:matches', updatedMatches)
 }
 
-const updateImageField = (matchKey, field, file) => {
+// updateImageField now primarily expects a file path (or null)
+const updateImageField = (matchKey, field, filePath) => {
   const updatedMatches = {
     ...props.matches,
     [matchKey]: {
       ...props.matches[matchKey],
-      [field]: file,
+      [field]: filePath, // Store the file path
     },
   }
   emit('update:matches', updatedMatches)
-  const previewKey = getPreviewKey(field)
-  if (previewKey) {
-    createPreview(file, previews[matchKey][previewKey])
+}
+
+const selectImageViaElectron = async (matchKey, field) => {
+  if (window.electronAPI && typeof window.electronAPI.openFileDialog === 'function') {
+    try {
+      const result = await window.electronAPI.openFileDialog('image') // 'image' is a hint for the dialog
+      if (result && result.path) {
+        updateImageField(matchKey, field, result.path)
+      }
+    } catch (error) {
+      console.error('Error opening file dialog:', error)
+      // Optionally: show a user-facing error message
+    }
+  } else {
+    console.error(
+      'window.electronAPI.openFileDialog is not available. Ensure it is exposed via preload script in Electron.',
+    )
+    // Optionally: show a user-facing error message or disable the button
   }
 }
 
 const handleClearImage = (matchKey, field) => {
   updateImageField(matchKey, field, null)
-  const previewKey = getPreviewKey(field)
-  if (previewKey) {
-    previews[matchKey][previewKey].value = ''
-  }
 }
 
-watch(
-  () => props.matches.date,
-  (newDate) => {
-    emit('update:matches', { ...props.matches, date: newDate })
-  },
-  { immediate: true },
-)
+// Helper to create computed properties for filenames
+const createFileNameComputed = (matchKey, fieldName) => {
+  return computed(() => {
+    const imagePath = props.matches[matchKey]?.[fieldName]
+    if (typeof imagePath === 'string' && imagePath) {
+      return imagePath.split(/[\\/]/).pop() || ''
+    }
+    return ''
+  })
+}
 
-watch(
-  () => props.matches.firstMatch,
-  (newMatch) => {
-    createPreview(newMatch.leftTeamLogo, previews.firstMatch.leftLogoPreviewUrl)
-    createPreview(newMatch.rightTeamLogo, previews.firstMatch.rightLogoPreviewUrl)
-    createPreview(newMatch.leftTeamFlag, previews.firstMatch.leftFlagPreviewUrl)
-    createPreview(newMatch.rightTeamFlag, previews.firstMatch.rightFlagPreviewUrl)
-  },
-  { immediate: true },
-)
+// Computed file names for firstMatch
+const firstMatchLeftLogoFileName = createFileNameComputed('firstMatch', 'leftTeamLogo')
+const firstMatchRightLogoFileName = createFileNameComputed('firstMatch', 'rightTeamLogo')
+const firstMatchLeftFlagFileName = createFileNameComputed('firstMatch', 'leftTeamFlag')
+const firstMatchRightFlagFileName = createFileNameComputed('firstMatch', 'rightTeamFlag')
 
-watch(
-  () => props.matches.secondMatch,
-  (newMatch) => {
-    createPreview(newMatch.leftTeamLogo, previews.secondMatch.leftLogoPreviewUrl)
-    createPreview(newMatch.rightTeamLogo, previews.secondMatch.rightLogoPreviewUrl)
-    createPreview(newMatch.leftTeamFlag, previews.secondMatch.leftFlagPreviewUrl)
-    createPreview(newMatch.rightTeamFlag, previews.secondMatch.rightFlagPreviewUrl)
-  },
-  { immediate: true },
-)
+// Computed file names for secondMatch
+const secondMatchLeftLogoFileName = createFileNameComputed('secondMatch', 'leftTeamLogo')
+const secondMatchRightLogoFileName = createFileNameComputed('secondMatch', 'rightTeamLogo')
+const secondMatchLeftFlagFileName = createFileNameComputed('secondMatch', 'leftTeamFlag')
+const secondMatchRightFlagFileName = createFileNameComputed('secondMatch', 'rightTeamFlag')
 
 onUnmounted(() => {
   Object.values(previews).forEach((previewSet) => {
@@ -126,7 +107,6 @@ onUnmounted(() => {
 
 <template>
   <div class="matches-container">
-    <!-- Info Panel -->
     <v-row no-gutters class="panel-row">
       <v-col cols="12" class="pa-0">
         <v-card class="info-panel" flat>
@@ -144,19 +124,18 @@ onUnmounted(() => {
       </v-col>
     </v-row>
 
-    <!-- First Match Panel -->
     <v-row no-gutters class="panel-row">
       <v-col cols="12" class="pa-0">
         <v-card class="match-panel" flat>
           <v-card-title class="panel-title">FIRST MATCH</v-card-title>
           <v-text-field
             label="Match Time"
-            :model-value="props.matches.firstMatch.time"
+            :model-value="props.matches.firstMatch.MatchTime"
             type="time"
             hide-details="auto"
             class="custom-text-input"
             flat
-            @update:model-value="updateMatchField('firstMatch', 'time', $event)"
+            @update:model-value="updateMatchField('firstMatch', 'MatchTime', $event)"
           ></v-text-field>
           <v-row no-gutters>
             <v-col cols="6" class="team-section">
@@ -169,52 +148,64 @@ onUnmounted(() => {
                 flat
                 @update:model-value="updateMatchField('firstMatch', 'leftTeamName', $event)"
               ></v-text-field>
-              <v-file-input
+
+              <v-text-field
                 label="Left Team Logo"
-                :model-value="props.matches.firstMatch.leftTeamLogo"
-                accept="image/*"
+                :model-value="firstMatchLeftLogoFileName"
+                readonly
                 hide-details="auto"
-                prepend-icon=""
-                class="custom-file-input"
+                class="custom-text-input"
                 flat
-                @update:model-value="updateImageField('firstMatch', 'leftTeamLogo', $event)"
-                @click:clear="handleClearImage('firstMatch', 'leftTeamLogo')"
               >
                 <template v-slot:append-inner>
                   <v-btn
-                    v-if="!props.matches.firstMatch.leftTeamLogo"
+                    v-if="!firstMatchLeftLogoFileName"
                     small
                     text
                     class="add-button-file"
+                    @click="selectImageViaElectron('firstMatch', 'leftTeamLogo')"
                     :ripple="false"
+                    >+ ADD</v-btn
                   >
-                    + ADD
-                  </v-btn>
+                  <v-btn
+                    v-if="firstMatchLeftLogoFileName"
+                    small
+                    icon
+                    class="clear-button"
+                    @click="handleClearImage('firstMatch', 'leftTeamLogo')"
+                    ><v-icon>mdi-close</v-icon></v-btn
+                  >
                 </template>
-              </v-file-input>
-              <v-file-input
+              </v-text-field>
+
+              <v-text-field
                 label="Left Team Flag"
-                :model-value="props.matches.firstMatch.leftTeamFlag"
-                accept="image/*"
+                :model-value="firstMatchLeftFlagFileName"
+                readonly
                 hide-details="auto"
-                prepend-icon=""
-                class="custom-file-input"
+                class="custom-text-input"
                 flat
-                @update:model-value="updateImageField('firstMatch', 'leftTeamFlag', $event)"
-                @click:clear="handleClearImage('firstMatch', 'leftTeamFlag')"
               >
                 <template v-slot:append-inner>
                   <v-btn
-                    v-if="!props.matches.firstMatch.leftTeamFlag"
+                    v-if="!firstMatchLeftFlagFileName"
                     small
                     text
                     class="add-button-file"
+                    @click="selectImageViaElectron('firstMatch', 'leftTeamFlag')"
                     :ripple="false"
+                    >+ ADD</v-btn
                   >
-                    + ADD
-                  </v-btn>
+                  <v-btn
+                    v-if="firstMatchLeftFlagFileName"
+                    small
+                    icon
+                    class="clear-button"
+                    @click="handleClearImage('firstMatch', 'leftTeamFlag')"
+                    ><v-icon>mdi-close</v-icon></v-btn
+                  >
                 </template>
-              </v-file-input>
+              </v-text-field>
             </v-col>
             <v-col cols="6" class="team-section">
               <v-text-field
@@ -226,71 +217,82 @@ onUnmounted(() => {
                 flat
                 @update:model-value="updateMatchField('firstMatch', 'rightTeamName', $event)"
               ></v-text-field>
-              <v-file-input
+
+              <v-text-field
                 label="Right Team Logo"
-                :model-value="props.matches.firstMatch.rightTeamLogo"
-                accept="image/*"
+                :model-value="firstMatchRightLogoFileName"
+                readonly
                 hide-details="auto"
-                prepend-icon=""
-                class="custom-file-input"
+                class="custom-text-input"
                 flat
-                @update:model-value="updateImageField('firstMatch', 'rightTeamLogo', $event)"
-                @click:clear="handleClearImage('firstMatch', 'rightTeamLogo')"
               >
                 <template v-slot:append-inner>
                   <v-btn
-                    v-if="!props.matches.firstMatch.rightTeamLogo"
+                    v-if="!firstMatchRightLogoFileName"
                     small
                     text
                     class="add-button-file"
+                    @click="selectImageViaElectron('firstMatch', 'rightTeamLogo')"
                     :ripple="false"
+                    >+ ADD</v-btn
                   >
-                    + ADD
-                  </v-btn>
+                  <v-btn
+                    v-if="firstMatchRightLogoFileName"
+                    small
+                    icon
+                    class="clear-button"
+                    @click="handleClearImage('firstMatch', 'rightTeamLogo')"
+                    ><v-icon>mdi-close</v-icon></v-btn
+                  >
                 </template>
-              </v-file-input>
-              <v-file-input
+              </v-text-field>
+
+              <v-text-field
                 label="Right Team Flag"
-                :model-value="props.matches.firstMatch.rightTeamFlag"
-                accept="image/*"
+                :model-value="firstMatchRightFlagFileName"
+                readonly
                 hide-details="auto"
-                prepend-icon=""
-                class="custom-file-input"
+                class="custom-text-input"
                 flat
-                @update:model-value="updateImageField('firstMatch', 'rightTeamFlag', $event)"
-                @click:clear="handleClearImage('firstMatch', 'rightTeamFlag')"
               >
                 <template v-slot:append-inner>
                   <v-btn
-                    v-if="!props.matches.firstMatch.rightTeamFlag"
+                    v-if="!firstMatchRightFlagFileName"
                     small
                     text
                     class="add-button-file"
+                    @click="selectImageViaElectron('firstMatch', 'rightTeamFlag')"
                     :ripple="false"
+                    >+ ADD</v-btn
                   >
-                    + ADD
-                  </v-btn>
+                  <v-btn
+                    v-if="firstMatchRightFlagFileName"
+                    small
+                    icon
+                    class="clear-button"
+                    @click="handleClearImage('firstMatch', 'rightTeamFlag')"
+                    ><v-icon>mdi-close</v-icon></v-btn
+                  >
                 </template>
-              </v-file-input>
+              </v-text-field>
             </v-col>
           </v-row>
         </v-card>
       </v-col>
     </v-row>
 
-    <!-- Second Match Panel -->
     <v-row no-gutters class="panel-row">
       <v-col cols="12" class="pa-0">
         <v-card class="match-panel" flat>
           <v-card-title class="panel-title">SECOND MATCH</v-card-title>
           <v-text-field
             label="Match Time"
-            :model-value="props.matches.secondMatch.time"
+            :model-value="props.matches.secondMatch.MatchTime"
             type="time"
             hide-details="auto"
             class="custom-text-input"
             flat
-            @update:model-value="updateMatchField('secondMatch', 'time', $event)"
+            @update:model-value="updateMatchField('secondMatch', 'MatchTime', $event)"
           ></v-text-field>
           <v-row no-gutters>
             <v-col cols="6" class="team-section">
@@ -303,52 +305,64 @@ onUnmounted(() => {
                 flat
                 @update:model-value="updateMatchField('secondMatch', 'leftTeamName', $event)"
               ></v-text-field>
-              <v-file-input
+
+              <v-text-field
                 label="Left Team Logo"
-                :model-value="props.matches.secondMatch.leftTeamLogo"
-                accept="image/*"
+                :model-value="secondMatchLeftLogoFileName"
+                readonly
                 hide-details="auto"
-                prepend-icon=""
-                class="custom-file-input"
+                class="custom-text-input"
                 flat
-                @update:model-value="updateImageField('secondMatch', 'leftTeamLogo', $event)"
-                @click:clear="handleClearImage('secondMatch', 'leftTeamLogo')"
               >
                 <template v-slot:append-inner>
                   <v-btn
-                    v-if="!props.matches.secondMatch.leftTeamLogo"
+                    v-if="!secondMatchLeftLogoFileName"
                     small
                     text
                     class="add-button-file"
+                    @click="selectImageViaElectron('secondMatch', 'leftTeamLogo')"
                     :ripple="false"
+                    >+ ADD</v-btn
                   >
-                    + ADD
-                  </v-btn>
+                  <v-btn
+                    v-if="secondMatchLeftLogoFileName"
+                    small
+                    icon
+                    class="clear-button"
+                    @click="handleClearImage('secondMatch', 'leftTeamLogo')"
+                    ><v-icon>mdi-close</v-icon></v-btn
+                  >
                 </template>
-              </v-file-input>
-              <v-file-input
+              </v-text-field>
+
+              <v-text-field
                 label="Left Team Flag"
-                :model-value="props.matches.secondMatch.leftTeamFlag"
-                accept="image/*"
+                :model-value="secondMatchLeftFlagFileName"
+                readonly
                 hide-details="auto"
-                prepend-icon=""
-                class="custom-file-input"
+                class="custom-text-input"
                 flat
-                @update:model-value="updateImageField('secondMatch', 'leftTeamFlag', $event)"
-                @click:clear="handleClearImage('secondMatch', 'leftTeamFlag')"
               >
                 <template v-slot:append-inner>
                   <v-btn
-                    v-if="!props.matches.secondMatch.leftTeamFlag"
+                    v-if="!secondMatchLeftFlagFileName"
                     small
                     text
                     class="add-button-file"
+                    @click="selectImageViaElectron('secondMatch', 'leftTeamFlag')"
                     :ripple="false"
+                    >+ ADD</v-btn
                   >
-                    + ADD
-                  </v-btn>
+                  <v-btn
+                    v-if="secondMatchLeftFlagFileName"
+                    small
+                    icon
+                    class="clear-button"
+                    @click="handleClearImage('secondMatch', 'leftTeamFlag')"
+                    ><v-icon>mdi-close</v-icon></v-btn
+                  >
                 </template>
-              </v-file-input>
+              </v-text-field>
             </v-col>
             <v-col cols="6" class="team-section">
               <v-text-field
@@ -360,52 +374,64 @@ onUnmounted(() => {
                 flat
                 @update:model-value="updateMatchField('secondMatch', 'rightTeamName', $event)"
               ></v-text-field>
-              <v-file-input
+
+              <v-text-field
                 label="Right Team Logo"
-                :model-value="props.matches.secondMatch.rightTeamLogo"
-                accept="image/*"
+                :model-value="secondMatchRightLogoFileName"
+                readonly
                 hide-details="auto"
-                prepend-icon=""
-                class="custom-file-input"
+                class="custom-text-input"
                 flat
-                @update:model-value="updateImageField('secondMatch', 'rightTeamLogo', $event)"
-                @click:clear="handleClearImage('secondMatch', 'rightTeamLogo')"
               >
                 <template v-slot:append-inner>
                   <v-btn
-                    v-if="!props.matches.secondMatch.rightTeamLogo"
+                    v-if="!secondMatchRightLogoFileName"
                     small
                     text
                     class="add-button-file"
+                    @click="selectImageViaElectron('secondMatch', 'rightTeamLogo')"
                     :ripple="false"
+                    >+ ADD</v-btn
                   >
-                    + ADD
-                  </v-btn>
+                  <v-btn
+                    v-if="secondMatchRightLogoFileName"
+                    small
+                    icon
+                    class="clear-button"
+                    @click="handleClearImage('secondMatch', 'rightTeamLogo')"
+                    ><v-icon>mdi-close</v-icon></v-btn
+                  >
                 </template>
-              </v-file-input>
-              <v-file-input
+              </v-text-field>
+
+              <v-text-field
                 label="Right Team Flag"
-                :model-value="props.matches.secondMatch.rightTeamFlag"
-                accept="image/*"
+                :model-value="secondMatchRightFlagFileName"
+                readonly
                 hide-details="auto"
-                prepend-icon=""
-                class="custom-file-input"
+                class="custom-text-input"
                 flat
-                @update:model-value="updateImageField('secondMatch', 'rightTeamFlag', $event)"
-                @click:clear="handleClearImage('secondMatch', 'rightTeamFlag')"
               >
                 <template v-slot:append-inner>
                   <v-btn
-                    v-if="!props.matches.secondMatch.rightTeamFlag"
+                    v-if="!secondMatchRightFlagFileName"
                     small
                     text
                     class="add-button-file"
+                    @click="selectImageViaElectron('secondMatch', 'rightTeamFlag')"
                     :ripple="false"
+                    >+ ADD</v-btn
                   >
-                    + ADD
-                  </v-btn>
+                  <v-btn
+                    v-if="secondMatchRightFlagFileName"
+                    small
+                    icon
+                    class="clear-button"
+                    @click="handleClearImage('secondMatch', 'rightTeamFlag')"
+                    ><v-icon>mdi-close</v-icon></v-btn
+                  >
                 </template>
-              </v-file-input>
+              </v-text-field>
             </v-col>
           </v-row>
         </v-card>

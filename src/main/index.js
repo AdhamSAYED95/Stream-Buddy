@@ -1,10 +1,12 @@
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain } from 'electron'
 import path from 'path'
 import * as fs from 'node:fs/promises'
 import { fileURLToPath } from 'url'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
+
+let win = null
 
 const createWindow = () => {
   const win = new BrowserWindow({
@@ -34,14 +36,30 @@ const createWindow = () => {
   }
 }
 
-ipcMain.handle('read-file', async (event, filePath) => {
+ipcMain.handle('open-file-dialog', async (event, type) => {
+  const filters = [{ name: 'Images', extensions: ['jpg', 'jpeg', 'png', 'gif'] }]
+  const { canceled, filePaths } = await dialog.showOpenDialog(win, {
+    properties: ['openFile'],
+    filters,
+  })
+  if (canceled) {
+    return null
+  }
+  return {
+    path: filePaths[0],
+    type,
+  }
+})
+
+ipcMain.handle('create-file', async (event, filePath, content) => {
   try {
-    const data = await fs.readFile(filePath, 'utf8')
-    console.log('File content:', data)
-    return data
+    const directory = path.dirname(filePath)
+    await fs.mkdir(directory, { recursive: true })
+    await fs.writeFile(filePath, content)
+    return true
   } catch (err) {
-    console.error('Error reading file in main process:', err)
-    throw err
+    console.error('Failed to write file:', err)
+    return false
   }
 })
 
