@@ -30,13 +30,15 @@ const updateMatches = (updatedMatches) => {
 
 const createMatchsJson = async () => {
   const jsonData = JSON.stringify(matches.value, null, 2)
-  await window.electronAPI.createFile('ViewsData\\todaysmatch.json', jsonData)
+  await window.electronAPI.createFile('ViewsData\\todaysmatches.json', jsonData)
 }
 </script>
 <template>
   <div class="matches-view">
-    <h1>Today's Matches</h1>
-    <v-btn color="primary" class="mb-4" @click="createMatchsJson">Create All Matches's file</v-btn>
+    <h1 class="sticky">Today's Matches</h1>
+    <v-btn color="primary" class="mb-4 sticky" @click="createMatchsJson"
+      >Create All Matches's file</v-btn
+    >
     <div class="matches-container">
       <TodayPanels :matches="matches" @update:matches="updateMatches" />
     </div>
@@ -59,6 +61,16 @@ h1 {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+.sticky {
+  position: sticky;
+  top: 20px; /* Distance from top when sticky; adjust as needed */
+  z-index: 1000; /* Ensure they stay above other content */
+}
+
+/* Ensure button retains its original styling */
+.mb-4 {
+  margin-bottom: 16px; /* Vuetify’s mb-4 applies 16px; explicitly define to ensure clarity */
 }
 
 .loading {

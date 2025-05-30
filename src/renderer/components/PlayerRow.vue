@@ -117,6 +117,7 @@ const heroFileName = computed(() => heroFilePath.value.split(/[\\/]/).pop() || '
               hide-details="auto"
               class="custom-text-input"
               flat
+              @click="selectImageFile('image')"
             >
               <template v-slot:append-inner>
                 <v-btn
@@ -124,7 +125,7 @@ const heroFileName = computed(() => heroFilePath.value.split(/[\\/]/).pop() || '
                   small
                   text
                   class="add-button-file"
-                  @click="selectImageFile('image')"
+                  @click.stop="selectImageFile('image')"
                   :ripple="false"
                 >
                   + ADD
@@ -133,7 +134,7 @@ const heroFileName = computed(() => heroFilePath.value.split(/[\\/]/).pop() || '
                   v-if="heroFileName"
                   small
                   icon
-                  @click="handleClearHeroImage"
+                  @click.stop="handleClearHeroImage"
                   class="clear-button"
                 >
                   <v-icon>mdi-close</v-icon>
@@ -193,28 +194,24 @@ const heroFileName = computed(() => heroFilePath.value.split(/[\\/]/).pop() || '
 </template>
 
 <style scoped>
-/* Main container for the entire player stats panel */
 .player-stats-panel-container {
-  background-color: #1e2a38; /* Background of the area holding this panel */
+  background-color: #1e2a38;
   color: #ffffff;
-  padding: 8px; /* Consistent outer padding */
-  /* Remove width/max-width here. Let the parent (v-main/v-col) control width. */
+  padding: 8px;
 }
 
-/* Row containing the single panel */
 .panel-row {
-  background-color: #1e2a38; /* Matches the container background */
-  margin-bottom: 16px; /* Space between multiple player panels if used in a list */
+  background-color: #1e2a38;
+  margin-bottom: 16px;
 }
 
-/* The v-card that acts as the panel itself */
 .player-stats-panel {
-  background-color: #1e2a38 !important; /* Ensure dark background */
-  border: 1px solid #2c3e50; /* Border from your previous styles */
+  background-color: #1e2a38 !important;
+  border: 1px solid #2c3e50;
   border-radius: 4px;
-  padding: 0 8px 8px 8px; /* Padding inside the card for content */
-  box-sizing: border-box; /* Include padding/border in element's total width/height */
-  width: 100%; /* Take full width of its parent v-col */
+  padding: 0 8px 8px 8px;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .panel-title {
@@ -225,10 +222,8 @@ const heroFileName = computed(() => heroFilePath.value.split(/[\\/]/).pop() || '
   text-transform: uppercase;
 }
 
-/* Spacing between individual input fields */
 .input-spacing {
-  margin-bottom: 12px; /* Slightly reduced for tighter stacking */
-  /* Remove any horizontal padding here, v-card padding handles it */
+  margin-bottom: 12px;
 }
 
 /* Remove margin-bottom from the last input field */

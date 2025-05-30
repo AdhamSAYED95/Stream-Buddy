@@ -56,8 +56,10 @@ onMounted(() => {
 
 <template>
   <div class="brackets-view">
-    <h1>Brackets View</h1>
-    <v-btn color="primary" class="mb-4" @click="createBracketsJson">Create Brackets File</v-btn>
+    <h1 class="sticky">Brackets View</h1>
+    <v-btn color="primary" class="mb-4 sticky" @click="createBracketsJson"
+      >Create Brackets File</v-btn
+    >
     <div v-if="Object.keys(teams).length">
       <v-virtual-scroll :items="Object.values(teams)" height="calc(100vh - 80px)" item-height="48">
         <template v-slot:default="{ item }">
@@ -76,6 +78,17 @@ onMounted(() => {
   padding: 20px;
   font-family: Arial, sans-serif;
   height: 100%;
+}
+
+.sticky {
+  position: sticky;
+  top: 20px; /* Distance from top when sticky; adjust as needed */
+  z-index: 1000; /* Ensure they stay above other content */
+}
+
+/* Ensure button retains its original styling */
+.mb-4 {
+  margin-bottom: 16px; /* Vuetify’s mb-4 applies 16px; explicitly define to ensure clarity */
 }
 
 h1 {

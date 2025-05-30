@@ -156,6 +156,7 @@ onUnmounted(() => {
                 hide-details="auto"
                 class="custom-text-input"
                 flat
+                @click="selectImageViaElectron('firstMatch', 'leftTeamLogo')"
               >
                 <template v-slot:append-inner>
                   <v-btn
@@ -163,7 +164,7 @@ onUnmounted(() => {
                     small
                     text
                     class="add-button-file"
-                    @click="selectImageViaElectron('firstMatch', 'leftTeamLogo')"
+                    @click.stop="selectImageViaElectron('firstMatch', 'leftTeamLogo')"
                     :ripple="false"
                     >+ ADD</v-btn
                   >
@@ -172,7 +173,7 @@ onUnmounted(() => {
                     small
                     icon
                     class="clear-button"
-                    @click="handleClearImage('firstMatch', 'leftTeamLogo')"
+                    @click.stop="handleClearImage('firstMatch', 'leftTeamLogo')"
                     ><v-icon>mdi-close</v-icon></v-btn
                   >
                 </template>
@@ -185,6 +186,7 @@ onUnmounted(() => {
                 hide-details="auto"
                 class="custom-text-input"
                 flat
+                @click="selectImageViaElectron('firstMatch', 'leftTeamFlag')"
               >
                 <template v-slot:append-inner>
                   <v-btn
@@ -192,7 +194,7 @@ onUnmounted(() => {
                     small
                     text
                     class="add-button-file"
-                    @click="selectImageViaElectron('firstMatch', 'leftTeamFlag')"
+                    @click.stop="selectImageViaElectron('firstMatch', 'leftTeamFlag')"
                     :ripple="false"
                     >+ ADD</v-btn
                   >
@@ -201,7 +203,7 @@ onUnmounted(() => {
                     small
                     icon
                     class="clear-button"
-                    @click="handleClearImage('firstMatch', 'leftTeamFlag')"
+                    @click.stop="handleClearImage('firstMatch', 'leftTeamFlag')"
                     ><v-icon>mdi-close</v-icon></v-btn
                   >
                 </template>
@@ -225,6 +227,7 @@ onUnmounted(() => {
                 hide-details="auto"
                 class="custom-text-input"
                 flat
+                @click="selectImageViaElectron('firstMatch', 'rightTeamLogo')"
               >
                 <template v-slot:append-inner>
                   <v-btn
@@ -232,7 +235,7 @@ onUnmounted(() => {
                     small
                     text
                     class="add-button-file"
-                    @click="selectImageViaElectron('firstMatch', 'rightTeamLogo')"
+                    @click.stop="selectImageViaElectron('firstMatch', 'rightTeamLogo')"
                     :ripple="false"
                     >+ ADD</v-btn
                   >
@@ -241,7 +244,7 @@ onUnmounted(() => {
                     small
                     icon
                     class="clear-button"
-                    @click="handleClearImage('firstMatch', 'rightTeamLogo')"
+                    @click.stop="handleClearImage('firstMatch', 'rightTeamLogo')"
                     ><v-icon>mdi-close</v-icon></v-btn
                   >
                 </template>
@@ -254,6 +257,7 @@ onUnmounted(() => {
                 hide-details="auto"
                 class="custom-text-input"
                 flat
+                @click="selectImageViaElectron('firstMatch', 'rightTeamFlag')"
               >
                 <template v-slot:append-inner>
                   <v-btn
@@ -261,7 +265,7 @@ onUnmounted(() => {
                     small
                     text
                     class="add-button-file"
-                    @click="selectImageViaElectron('firstMatch', 'rightTeamFlag')"
+                    @click.stop="selectImageViaElectron('firstMatch', 'rightTeamFlag')"
                     :ripple="false"
                     >+ ADD</v-btn
                   >
@@ -270,7 +274,7 @@ onUnmounted(() => {
                     small
                     icon
                     class="clear-button"
-                    @click="handleClearImage('firstMatch', 'rightTeamFlag')"
+                    @click.stop="handleClearImage('firstMatch', 'rightTeamFlag')"
                     ><v-icon>mdi-close</v-icon></v-btn
                   >
                 </template>
@@ -313,6 +317,7 @@ onUnmounted(() => {
                 hide-details="auto"
                 class="custom-text-input"
                 flat
+                @click="selectImageViaElectron('secondMatch', 'leftTeamLogo')"
               >
                 <template v-slot:append-inner>
                   <v-btn
@@ -320,7 +325,7 @@ onUnmounted(() => {
                     small
                     text
                     class="add-button-file"
-                    @click="selectImageViaElectron('secondMatch', 'leftTeamLogo')"
+                    @click.stop="selectImageViaElectron('secondMatch', 'leftTeamLogo')"
                     :ripple="false"
                     >+ ADD</v-btn
                   >
@@ -329,7 +334,7 @@ onUnmounted(() => {
                     small
                     icon
                     class="clear-button"
-                    @click="handleClearImage('secondMatch', 'leftTeamLogo')"
+                    @click.stop="handleClearImage('secondMatch', 'leftTeamLogo')"
                     ><v-icon>mdi-close</v-icon></v-btn
                   >
                 </template>
@@ -342,6 +347,7 @@ onUnmounted(() => {
                 hide-details="auto"
                 class="custom-text-input"
                 flat
+                @click="selectImageViaElectron('secondMatch', 'leftTeamFlag')"
               >
                 <template v-slot:append-inner>
                   <v-btn
@@ -349,7 +355,7 @@ onUnmounted(() => {
                     small
                     text
                     class="add-button-file"
-                    @click="selectImageViaElectron('secondMatch', 'leftTeamFlag')"
+                    @click.stop="selectImageViaElectron('secondMatch', 'leftTeamFlag')"
                     :ripple="false"
                     >+ ADD</v-btn
                   >
@@ -358,7 +364,7 @@ onUnmounted(() => {
                     small
                     icon
                     class="clear-button"
-                    @click="handleClearImage('secondMatch', 'leftTeamFlag')"
+                    @click.stop="handleClearImage('secondMatch', 'leftTeamFlag')"
                     ><v-icon>mdi-close</v-icon></v-btn
                   >
                 </template>
@@ -382,6 +388,7 @@ onUnmounted(() => {
                 hide-details="auto"
                 class="custom-text-input"
                 flat
+                @click="selectImageViaElectron('secondMatch', 'rightTeamLogo')"
               >
                 <template v-slot:append-inner>
                   <v-btn
@@ -389,7 +396,7 @@ onUnmounted(() => {
                     small
                     text
                     class="add-button-file"
-                    @click="selectImageViaElectron('secondMatch', 'rightTeamLogo')"
+                    @click.stop="selectImageViaElectron('secondMatch', 'rightTeamLogo')"
                     :ripple="false"
                     >+ ADD</v-btn
                   >
@@ -398,7 +405,7 @@ onUnmounted(() => {
                     small
                     icon
                     class="clear-button"
-                    @click="handleClearImage('secondMatch', 'rightTeamLogo')"
+                    @click.stop="handleClearImage('secondMatch', 'rightTeamLogo')"
                     ><v-icon>mdi-close</v-icon></v-btn
                   >
                 </template>
@@ -411,6 +418,7 @@ onUnmounted(() => {
                 hide-details="auto"
                 class="custom-text-input"
                 flat
+                @click="selectImageViaElectron('secondMatch', 'rightTeamFlag')"
               >
                 <template v-slot:append-inner>
                   <v-btn
@@ -418,7 +426,7 @@ onUnmounted(() => {
                     small
                     text
                     class="add-button-file"
-                    @click="selectImageViaElectron('secondMatch', 'rightTeamFlag')"
+                    @click.stop="selectImageViaElectron('secondMatch', 'rightTeamFlag')"
                     :ripple="false"
                     >+ ADD</v-btn
                   >
@@ -427,7 +435,7 @@ onUnmounted(() => {
                     small
                     icon
                     class="clear-button"
-                    @click="handleClearImage('secondMatch', 'rightTeamFlag')"
+                    @click.stop="handleClearImage('secondMatch', 'rightTeamFlag')"
                     ><v-icon>mdi-close</v-icon></v-btn
                   >
                 </template>

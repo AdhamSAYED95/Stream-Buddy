@@ -97,6 +97,7 @@ const flagFileName = computed(() => flagFilePath.value.split(/[\\/]/).pop() || '
           hide-details="auto"
           class="custom-text-input"
           flat
+          @click="selectImageFile('image')"
         >
           <template v-slot:append-inner>
             <v-btn
@@ -104,12 +105,18 @@ const flagFileName = computed(() => flagFilePath.value.split(/[\\/]/).pop() || '
               small
               text
               class="add-button-file"
-              @click="selectImageFile('image')"
+              @click.stop="selectImageFile('image')"
               :ripple="false"
             >
               + ADD
             </v-btn>
-            <v-btn v-if="imageFileName" small icon @click="handleClearImage" class="clear-button">
+            <v-btn
+              v-if="imageFileName"
+              small
+              icon
+              @click.stop="handleClearImage"
+              class="clear-button"
+            >
               <v-icon>mdi-close</v-icon>
             </v-btn>
           </template>
@@ -123,6 +130,7 @@ const flagFileName = computed(() => flagFilePath.value.split(/[\\/]/).pop() || '
           hide-details="auto"
           class="custom-text-input"
           flat
+          @click="selectImageFile('flag')"
         >
           <template v-slot:append-inner>
             <v-btn
@@ -130,12 +138,18 @@ const flagFileName = computed(() => flagFilePath.value.split(/[\\/]/).pop() || '
               small
               text
               class="add-button-file"
-              @click="selectImageFile('flag')"
+              @click.stop="selectImageFile('flag')"
               :ripple="false"
             >
               + ADD
             </v-btn>
-            <v-btn v-if="flagFileName" small icon @click="handleClearFlag" class="clear-button">
+            <v-btn
+              v-if="flagFileName"
+              small
+              icon
+              @click.stop="handleClearFlag"
+              class="clear-button"
+            >
               <v-icon>mdi-close</v-icon>
             </v-btn>
           </template>

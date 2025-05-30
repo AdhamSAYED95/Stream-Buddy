@@ -42,9 +42,10 @@ onMounted(() => {
 
 <template>
   <div class="players-view">
-    <h1>Players Stats</h1>
-    <v-btn color="primary" class="mb-4" @click="createPlayerJson">Create Player's file</v-btn>
-
+    <h1 class="sticky">Players Stats</h1>
+    <v-btn color="primary" class="mb-4 sticky" @click="createPlayerJson"
+      >Create Player's file</v-btn
+    >
     <PlayerRow :player="players" @update-player="updatePlayer" />
   </div>
 </template>
@@ -59,5 +60,16 @@ onMounted(() => {
 h1 {
   text-align: center;
   margin-bottom: 20px;
+}
+
+.sticky {
+  position: sticky;
+  top: 20px; /* Distance from top when sticky; adjust as needed */
+  z-index: 1000; /* Ensure they stay above other content */
+}
+
+/* Ensure button retains its original styling */
+.mb-4 {
+  margin-bottom: 16px; /* Vuetify’s mb-4 applies 16px; explicitly define to ensure clarity */
 }
 </style>
