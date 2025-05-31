@@ -265,7 +265,7 @@ const flagFileName = computed(() => flagFilePath.value.split(/[\\/]/).pop() || '
   border-radius: 0 4px 4px 0;
   background-color: #2c3e50;
   position: absolute;
-  right: 0; /* Adjusted to prevent overlap with clear button */
+  right: 0;
   top: 0;
 }
 

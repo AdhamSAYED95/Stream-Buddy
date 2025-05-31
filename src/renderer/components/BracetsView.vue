@@ -82,13 +82,12 @@ onMounted(() => {
 
 .sticky {
   position: sticky;
-  top: 20px; /* Distance from top when sticky; adjust as needed */
-  z-index: 1000; /* Ensure they stay above other content */
+  top: 20px;
+  z-index: 1000;
 }
 
-/* Ensure button retains its original styling */
 .mb-4 {
-  margin-bottom: 16px; /* Vuetify’s mb-4 applies 16px; explicitly define to ensure clarity */
+  margin-bottom: 16px;
 }
 
 h1 {
