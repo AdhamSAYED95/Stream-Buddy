@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onUnmounted, computed } from 'vue'
+import { ref, watch } from 'vue'
 
 const emit = defineEmits(['update-team'])
 
@@ -10,10 +10,9 @@ const props = defineProps({
   }
 })
 
-const imagePreviewUrl = ref('')
-const flagPreviewUrl = ref('')
-const imageFilePath = ref('')
-const flagFilePath = ref('')
+// Initialize refs with prop values
+const imageFilePath = ref(props.team.TeamImage || '')
+const flagFilePath = ref(props.team.FlagImage || '')
 
 // Open Electron file dialog to select an image
 const selectImageFile = async (type) => {
@@ -73,17 +72,15 @@ const handleScoreChange = (value) => {
   emit('update-team', updatedTeam)
 }
 
-onUnmounted(() => {
-  ;[imagePreviewUrl, flagPreviewUrl].forEach((urlRef) => {
-    if (urlRef.value?.startsWith('blob:')) {
-      URL.revokeObjectURL(urlRef.value)
-    }
-  })
-})
-
-// Computed properties to display only the file name
-const imageFileName = computed(() => imageFilePath.value.split(/[\\/]/).pop() || '')
-const flagFileName = computed(() => flagFilePath.value.split(/[\\/]/).pop() || '')
+// Watch props.team to sync image paths
+watch(
+  () => props.team,
+  (newTeam) => {
+    imageFilePath.value = newTeam.TeamImage || ''
+    flagFilePath.value = newTeam.FlagImage || ''
+  },
+  { deep: true }
+)
 </script>
 
 <template>
@@ -91,7 +88,7 @@ const flagFileName = computed(() => flagFilePath.value.split(/[\\/]/).pop() || '
     <v-row align="center" no-gutters class="team-row">
       <v-col cols="3" class="pa-1">
         <v-text-field
-          :model-value="imageFileName"
+          :model-value="imageFilePath.split(/[\\/]/).pop() || ''"
           label="Team Image"
           readonly
           hide-details="auto"
@@ -101,7 +98,7 @@ const flagFileName = computed(() => flagFilePath.value.split(/[\\/]/).pop() || '
         >
           <template v-slot:append-inner>
             <v-btn
-              v-if="!imageFileName"
+              v-if="!imageFilePath"
               small
               text
               class="add-button-file"
@@ -111,7 +108,7 @@ const flagFileName = computed(() => flagFilePath.value.split(/[\\/]/).pop() || '
               + ADD
             </v-btn>
             <v-btn
-              v-if="imageFileName"
+              v-if="imageFilePath"
               small
               icon
               class="clear-button"
@@ -124,7 +121,7 @@ const flagFileName = computed(() => flagFilePath.value.split(/[\\/]/).pop() || '
       </v-col>
       <v-col cols="3" class="pa-1">
         <v-text-field
-          :model-value="flagFileName"
+          :model-value="flagFilePath.split(/[\\/]/).pop() || ''"
           label="Flag Image"
           readonly
           hide-details="auto"
@@ -134,7 +131,7 @@ const flagFileName = computed(() => flagFilePath.value.split(/[\\/]/).pop() || '
         >
           <template v-slot:append-inner>
             <v-btn
-              v-if="!flagFileName"
+              v-if="!flagFilePath"
               small
               text
               class="add-button-file"
@@ -144,7 +141,7 @@ const flagFileName = computed(() => flagFilePath.value.split(/[\\/]/).pop() || '
               + ADD
             </v-btn>
             <v-btn
-              v-if="flagFileName"
+              v-if="flagFilePath"
               small
               icon
               class="clear-button"
@@ -185,9 +182,9 @@ const flagFileName = computed(() => flagFilePath.value.split(/[\\/]/).pop() || '
 
 <style scoped>
 .team-row-container {
-  background-color: #1e2a38;
-  color: #ffffff;
-  border-bottom: 1px solid #2c3e50;
+  background-color: rgb(var(--v-theme-surface)); /* Changed from #1e2a38 */
+  color: rgb(var(--v-theme-on-surface)); /* Changed from #ffffff */
+  border-bottom: 1px solid rgb(var(--v-theme-input-border)); /* Changed from #2c3e50 */
   margin-bottom: 8px;
   border-radius: 4px;
 }
@@ -200,30 +197,32 @@ const flagFileName = computed(() => flagFilePath.value.split(/[\\/]/).pop() || '
 .custom-text-input {
   border-radius: 4px;
   overflow: hidden;
+  width: 100%; /* Added for consistency */
+  max-width: 100%; /* Added for consistency */
 }
 
 .custom-file-input .v-field__overlay,
 .custom-text-input .v-field__overlay,
 .custom-file-input .v-field__field,
 .custom-text-input .v-field__field {
-  background-color: #2c3e50 !important;
+  background-color: rgb(var(--v-theme-input-background)) !important; /* Changed from #2c3e50 */
 }
 
 .custom-file-input .v-input__control,
-.custom-text-input .v-input__control,
-.custom-file-input .v-input__slot,
-.custom-text-input .v-input__slot {
-  background-color: #2c3e50 !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+.custom-text-input .v-input__control {
+  background-color: rgb(var(--v-theme-input-background)) !important; /* Changed from #2c3e50 */
+  border: 1px solid rgb(var(--v-theme-input-border)) !important; /* Changed from rgba(255, 255, 255, 0.2) */
   box-shadow: none !important;
   border-radius: 4px !important;
   min-height: 48px !important;
   padding: 0 12px;
+  width: 100%; /* Added for consistency */
+  max-width: 100%; /* Added for consistency */
 }
 
 .custom-file-input .v-label,
 .custom-text-input .v-label {
-  color: #ffffff !important;
+  color: rgb(var(--v-theme-input-label)) !important; /* Changed from #ffffff */
   font-size: 14px !important;
   font-weight: bold;
   opacity: 1 !important;
@@ -235,27 +234,27 @@ const flagFileName = computed(() => flagFilePath.value.split(/[\\/]/).pop() || '
 
 .custom-file-input .v-field__input,
 .custom-text-input .v-field__input {
-  color: #ffffff !important;
+  color: rgb(var(--v-theme-input-text)) !important; /* Changed from #ffffff */
 }
 
 .custom-file-input .v-field__input::placeholder,
 .custom-text-input .v-field__input::placeholder {
-  color: #ffffff !important;
+  color: rgba(var(--v-theme-input-text), 0.7) !important; /* Changed from #ffffff */
   opacity: 1 !important;
 }
 
 .custom-file-input .v-file-input__text {
-  color: #ffffff;
+  color: rgb(var(--v-theme-input-text)); /* Changed from #ffffff */
   padding-right: 50px;
 }
 
 .custom-text-input input {
-  color: #ffffff;
+  color: rgb(var(--v-theme-input-text)); /* Changed from #ffffff */
   padding-right: 40px;
 }
 
 .add-button-file {
-  color: #00c853 !important;
+  color: rgb(var(--v-theme-primary)) !important; /* Changed from #00c853 */
   font-weight: bold;
   text-transform: uppercase;
   font-size: 12px;
@@ -263,10 +262,11 @@ const flagFileName = computed(() => flagFilePath.value.split(/[\\/]/).pop() || '
   min-width: auto;
   height: 100%;
   border-radius: 0 4px 4px 0;
-  background-color: #2c3e50;
+  background-color: transparent; /* Changed from #2c3e50 */
   position: absolute;
   right: 0;
   top: 0;
+  transition: all 0.1s ease; /* Added for consistency */
 }
 
 .clear-button {
@@ -276,10 +276,13 @@ const flagFileName = computed(() => flagFilePath.value.split(/[\\/]/).pop() || '
   transform: translateY(-50%);
 }
 
-.custom-text-input .v-input__append-inner .v-icon {
-  color: #ffffff !important;
+.custom-text-input .v-input__append-inner .v-icon,
+.custom-file-input .v-input__append-inner .v-icon {
+  /* Added custom-file-input selector for consistency */
+  color: rgb(var(--v-theme-input-label)) !important; /* Changed from #ffffff */
   font-size: 18px !important;
   margin-right: 8px;
+  transition: all 0.1s ease; /* Added for consistency */
 }
 
 .custom-file-input .v-input__prepend-inner,

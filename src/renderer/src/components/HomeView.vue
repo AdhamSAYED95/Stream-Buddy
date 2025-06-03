@@ -12,8 +12,8 @@
   justify-content: center;
   align-items: center;
   min-height: 100%;
-  background-color: #1e2a38;
-  color: #ffffff;
+  color: rgb(var(--v-theme-on-surface)); /* Changed from #ffffff */
+  padding: 8px;
 }
 
 .welcome-message {

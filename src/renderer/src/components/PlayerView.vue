@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import PlayerRow from './PlayerRow.vue'
 
 const players = ref({
@@ -13,7 +13,7 @@ const players = ref({
   Assists: 0
 })
 
-const initializePlayers = () => {
+const clearPlayerData = () => {
   players.value = {
     PlayerName: '',
     TeamName: '',
@@ -32,12 +32,29 @@ const updatePlayer = (updatedPlayer) => {
 
 const createPlayerJson = async () => {
   const jsonData = JSON.stringify(players.value, null, 2)
-  console.log(jsonData)
-  await window.api.createFile('ViewsData/PlayersStats.json', jsonData)
+  const defaultPath = await window.api.getDefaultPath()
+  const savePath = localStorage.getItem('json-save-path') || defaultPath
+  await window.api.createFile(`${savePath}/ViewData/PlayersStats.json`, jsonData)
 }
 
+watch(
+  players,
+  (val) => {
+    const jsonData = JSON.stringify(val)
+    localStorage.setItem('players', jsonData)
+    console.log('localStorageww size for players:', jsonData.length, 'bytes')
+  },
+  { deep: true }
+)
+
 onMounted(() => {
-  initializePlayers()
+  window.addEventListener('clear-all-input-data', clearPlayerData)
+  const saved = localStorage.getItem('players')
+  if (saved) players.value = JSON.parse(saved)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('clear-all-input-data', clearPlayerData)
 })
 </script>
 
@@ -45,7 +62,10 @@ onMounted(() => {
   <div class="players-view">
     <div class="fixed-header">
       <h1>Players Stats</h1>
-      <v-btn color="primary" class="mb-4" @click="createPlayerJson">Create Player's file</v-btn>
+      <v-btn color="primary" class="mb-4 mr-16" @click="createPlayerJson"
+        >Create Player's file</v-btn
+      >
+      <v-btn color="red" class="mb-4" @click="clearPlayerData">Clear Player Data</v-btn>
     </div>
     <div class="content">
       <PlayerRow :player="players" @update-player="updatePlayer" />
@@ -65,9 +85,13 @@ onMounted(() => {
   left: 56px;
   right: 0;
   z-index: 999;
-  background-color: #1e2a38;
-  padding: 16px 16px 16px 16px;
+
+  padding: 16px;
   transition: left 0.2s ease;
+}
+
+.players-view .fixed-header h1 {
+  color: rgb(var(--v-theme-on-surface));
 }
 
 h1 {

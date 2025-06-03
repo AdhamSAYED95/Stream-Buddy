@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onUnmounted, computed } from 'vue'
+import { ref, watch } from 'vue'
 
 const emit = defineEmits(['update-player'])
 
@@ -10,8 +10,7 @@ const props = defineProps({
   }
 })
 
-const heroImagePreviewUrl = ref('')
-const heroFilePath = ref('')
+const heroFilePath = ref(props.player.HeroImage || '')
 
 const selectImageFile = async (type) => {
   const result = await window.api.openFileDialog(type)
@@ -20,10 +19,10 @@ const selectImageFile = async (type) => {
   const { path } = result
 
   if (type === 'image') {
-    heroFilePath.value = path // Store full path
+    heroFilePath.value = path
     const updatedPlayer = {
       ...props.player,
-      HeroImage: path // Store the full path
+      HeroImage: path
     }
     emit('update-player', updatedPlayer)
   }
@@ -38,13 +37,13 @@ const handleClearHeroImage = () => {
   emit('update-player', updatedPlayer)
 }
 
-onUnmounted(() => {
-  if (heroImagePreviewUrl.value?.startsWith('blob:')) {
-    URL.revokeObjectURL(heroImagePreviewUrl.value)
-  }
-})
-
-const heroFileName = computed(() => heroFilePath.value.split(/[\\/]/).pop() || '')
+watch(
+  () => props.player,
+  (newPlayer) => {
+    heroFilePath.value = newPlayer.HeroImage || ''
+  },
+  { deep: true }
+)
 </script>
 
 <template>
@@ -111,7 +110,7 @@ const heroFileName = computed(() => heroFilePath.value.split(/[\\/]/).pop() || '
           </v-col>
           <v-col cols="12" class="pa-1 input-spacing">
             <v-text-field
-              :model-value="heroFileName"
+              :model-value="heroFilePath.split(/[\\/]/).pop() || ''"
               label="Hero Image"
               readonly
               hide-details="auto"
@@ -121,7 +120,7 @@ const heroFileName = computed(() => heroFilePath.value.split(/[\\/]/).pop() || '
             >
               <template v-slot:append-inner>
                 <v-btn
-                  v-if="!heroFileName"
+                  v-if="!heroFilePath"
                   small
                   text
                   class="add-button-file"
@@ -131,7 +130,7 @@ const heroFileName = computed(() => heroFilePath.value.split(/[\\/]/).pop() || '
                   + ADD
                 </v-btn>
                 <v-btn
-                  v-if="heroFileName"
+                  v-if="heroFilePath"
                   small
                   icon
                   class="clear-button"
@@ -195,29 +194,26 @@ const heroFileName = computed(() => heroFilePath.value.split(/[\\/]/).pop() || '
 
 <style scoped>
 .player-stats-panel-container {
-  background-color: #1e2a38;
-  color: #ffffff;
+  color: rgb(var(--v-theme-on-surface)); /* Changed from #ffffff */
   padding: 8px;
 }
 
 .panel-row {
-  background-color: #1e2a38;
+  background-color: transparent; /* Or inherit. Container above sets surface. Was #1e2a38 */
   margin-bottom: 16px;
 }
 
 .player-stats-panel {
-  background-color: #1e2a38 !important;
-  border: 1px solid #2c3e50;
-  border-radius: 4px;
-  padding: 0 8px 8px 8px;
-  box-sizing: border-box;
-  width: 100%;
+  /* This was already using a variable, which is great! */
+  /* Ensure --v-theme-input-border is defined in your Vuetify theme settings for both light and dark. */
+  background-color: rgb(var(--v-theme-surface)); /* Added to ensure panel bg is surface */
+  /* If this v-card, it might pick up surface automatically, but explicit can be good */
 }
 
 .panel-title {
   font-size: 16px;
   font-weight: bold;
-  color: #ffffff;
+  color: rgb(var(--v-theme-on-surface)); /* Changed from #ffffff */
   padding: 8px 0;
   text-transform: uppercase;
 }
@@ -226,103 +222,113 @@ const heroFileName = computed(() => heroFilePath.value.split(/[\\/]/).pop() || '
   margin-bottom: 12px;
 }
 
-/* Remove margin-bottom from the last input field */
 .input-spacing:last-child {
   margin-bottom: 0;
 }
 
-/* --- Existing Input Field Styles (mostly kept as is) --- */
+/* --- Custom Input Field Styles Themed --- */
 
 .custom-file-input,
 .custom-text-input {
   border-radius: 4px;
   overflow: hidden;
-  width: 100%; /* Ensure inputs take full width of their v-col */
-  max-width: 100%;
-}
-
-.custom-file-input .v-field__overlay,
-.custom-text-input .v-field__overlay,
-.custom-file-input .v-field__field,
-.custom-text-input .v-field__field {
-  background-color: #2c3e50 !important;
-}
-
-.custom-file-input .v-input__control,
-.custom-text-input .v-input__control,
-.custom-file-input .v-input__slot,
-.custom-text-input .v-input__slot {
-  background-color: #2c3e50 !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-  box-shadow: none !important;
-  border-radius: 4px !important;
-  min-height: 48px !important; /* Kept previous height for consistency */
-  padding: 0 12px;
   width: 100%;
   max-width: 100%;
 }
 
+/* Background of the input field area */
+.custom-file-input .v-field__overlay,
+.custom-text-input .v-field__overlay,
+.custom-file-input .v-field__field, /* v-field__field is the direct container for input */
+.custom-text-input .v-field__field {
+  background-color: rgb(var(--v-theme-input-background)) !important; /* Changed from #2c3e50 */
+}
+
+/* Overall control styling, including border */
+.custom-file-input .v-input__control,
+.custom-text-input .v-input__control {
+  background-color: rgb(var(--v-theme-input-background)) !important;
+  border: 1px solid rgb(var(--v-theme-input-border)) !important;
+  box-shadow: none !important;
+  border-radius: 4px !important;
+  min-height: 48px !important;
+  padding: 0 12px; /* This padding is for the control, not the text input itself */
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Input Label */
 .custom-file-input .v-label,
 .custom-text-input .v-label {
-  color: #ffffff !important;
-  font-size: 14px !important; /* Kept previous font-size */
+  color: rgb(var(--v-theme-input-label)) !important; /* Changed from #ffffff */
+  font-size: 14px !important;
   font-weight: bold;
-  opacity: 1 !important;
+  opacity: 1 !important; /* Or adjust for standard/focused states if needed */
   transform: translateY(-50%) scale(1) !important;
   top: 50% !important;
   left: 12px !important;
   pointer-events: none;
 }
 
-.custom-file-input .v-field__input,
+/* Input Text Color */
+.custom-file-input .v-field__input, /* Actual <input> or text display element */
 .custom-text-input .v-field__input {
-  color: #ffffff !important;
+  color: rgb(var(--v-theme-input-text)) !important; /* Changed from #ffffff */
 }
 
+/* Input Placeholder Text Color */
 .custom-file-input .v-field__input::placeholder,
 .custom-text-input .v-field__input::placeholder {
-  color: #ffffff !important;
-  opacity: 1 !important;
+  color: rgba(
+    var(--v-theme-input-text),
+    0.7
+  ) !important; /* Slightly muted version of input-text. Was #ffffff */
+  opacity: 1 !important; /* opacity is part of rgba now */
 }
 
+/* Text for v-file-input when a file is selected */
 .custom-file-input .v-file-input__text {
-  color: #ffffff;
-  padding-right: 50px;
+  color: rgb(var(--v-theme-input-text)); /* Changed from #ffffff */
+  padding-right: 50px; /* Keep structural */
 }
 
+/* Fallback for direct input elements if any, though .v-field__input is preferred target */
 .custom-text-input input {
-  color: #ffffff;
-  padding-right: 40px;
+  color: rgb(var(--v-theme-input-text)); /* Changed from #ffffff */
+  padding-right: 40px; /* Keep structural */
 }
 
 .add-button-file {
-  color: #00c853 !important;
+  color: rgb(var(--v-theme-primary)) !important; /* Changed from #00c853 */
   font-weight: bold;
   text-transform: uppercase;
-  font-size: 12px; /* Kept previous font-size */
+  font-size: 12px;
   padding: 0 8px;
   min-width: auto;
-  height: 100%; /* Adjusted height to match input height */
+  height: 100%;
   border-radius: 0 4px 4px 0;
-  background-color: #2c3e50;
+  /* Background: consider making it transparent or a subtle shade of input-background */
+  background-color: transparent; /* Was #2c3e50. Let the icon color carry the primary action feel */
+  /* Or if you want a bg: background-color: rgba(var(--v-theme-primary), 0.1); */
   position: absolute;
   right: 0;
-  top: 0; /* Align to top of input */
+  top: 0;
   transition: all 0.1s ease;
 }
 
-.custom-text-input .v-input__append-inner .v-icon {
-  color: #ffffff !important;
-  font-size: 18px !important;
-  margin-right: 8px;
-  transition: all 0.1s ease;
-}
-
+/* Icons inside inputs (e.g., pencil, clear) */
+.custom-text-input .v-input__append-inner .v-icon,
 .custom-file-input .v-input__append-inner .v-icon {
-  color: #ffffff !important;
-  margin-right: 8px;
+  /* Target clear button icon if it's in append-inner */
+  color: rgb(
+    var(--v-theme-input-label)
+  ) !important; /* Or input-text, depending on desired prominence. Was #ffffff */
+  font-size: 18px !important; /* Keep structural */
+  margin-right: 8px; /* Keep structural */
+  transition: all 0.1s ease; /* Keep structural */
 }
 
+/* Ensure no extra padding from Vuetify's default slots */
 .custom-file-input .v-input__prepend-inner,
 .custom-file-input .v-input__append-inner,
 .custom-text-input .v-input__prepend-inner,
@@ -331,6 +337,7 @@ const heroFileName = computed(() => heroFilePath.value.split(/[\\/]/).pop() || '
   margin: 0;
 }
 
+/* Ensure input text area itself has no extra padding reducing visible area */
 .custom-text-input .v-field__input,
 .custom-file-input .v-field__input {
   padding-top: 0 !important;
@@ -339,18 +346,22 @@ const heroFileName = computed(() => heroFilePath.value.split(/[\\/]/).pop() || '
   min-height: auto !important;
 }
 
+/* Hide default Vuetify outline if you're managing borders fully */
 .custom-file-input .v-field__outline,
 .custom-text-input .v-field__outline {
   display: none !important;
 }
 
+/* The v-field__field itself should not have padding if custom control manages it */
 .custom-file-input .v-field__field,
 .custom-text-input .v-field__field {
   padding: 0 !important;
 }
 
+/* Label positioning (structural, keep as is) */
 .custom-file-input:not(.v-input--is-dirty) .v-label,
 .custom-text-input .v-label {
+  /* This rule seems to duplicate the one above, but for non-dirty state */
   left: 12px !important;
   transform: translateY(-50%) scale(1) !important;
   top: 50% !important;

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import TeamRow from './TeamRow.vue'
 
 const teams = ref({})
@@ -15,7 +15,7 @@ const initializeTeams = () => {
       Score: 0
     }
   }
-  teams.value = initialTeamsObject
+  return initialTeamsObject
 }
 
 const updateTeam = (updatedTeam) => {
@@ -27,7 +27,6 @@ const updateTeam = (updatedTeam) => {
 const transformTeamsForOutput = () => {
   const outputObject = {}
   let teamNumber = 1
-
   for (const teamId in teams.value) {
     if (Object.prototype.hasOwnProperty.call(teams.value, teamId)) {
       outputObject[`team${teamNumber}`] = teams.value[teamId]
@@ -40,17 +39,43 @@ const transformTeamsForOutput = () => {
 const createBracketsJson = async () => {
   const transformedData = transformTeamsForOutput()
   const jsonData = JSON.stringify(transformedData, null, 2)
-
+  const defaultPath = await window.api.getDefaultPath()
+  console.log(defaultPath)
+  const savePath = localStorage.getItem('json-save-path') || defaultPath
   try {
-    await window.api.createFile('ViewsData\\BracketsView.json', jsonData)
-    console.log('BracketsView.json created successfully with "teamX" keys!')
+    await window.api.createFile(`${savePath}/ViewData/BracketsView.json`, jsonData)
   } catch (error) {
     console.error('Failed to create BracketsView.json:', error)
   }
 }
 
+const clearTeamsData = () => {
+  teams.value = initializeTeams()
+  console.log('Cleared teams data and removed from localStorage')
+}
+
+watch(
+  teams,
+  (val) => {
+    const jsonData = JSON.stringify(val)
+    localStorage.setItem('teams', jsonData)
+    console.log('localStorage size for teams:', jsonData.length, 'bytes')
+  },
+  { deep: true }
+)
+
 onMounted(() => {
-  initializeTeams()
+  const saved = localStorage.getItem('teams')
+  if (saved) {
+    teams.value = JSON.parse(saved)
+  } else {
+    teams.value = initializeTeams()
+  }
+  window.addEventListener('clear-all-input-data', clearTeamsData)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('clear-all-input-data', clearTeamsData)
 })
 </script>
 
@@ -58,9 +83,10 @@ onMounted(() => {
   <div class="brackets-view">
     <div class="fixed-header">
       <h1>Brackets View</h1>
-      <v-btn color="primary" class="mb-4 sticky" @click="createBracketsJson"
+      <v-btn color="primary" class="mb-4 mr-16" @click="createBracketsJson"
         >Create Brackets File</v-btn
       >
+      <v-btn color="red" class="mb-4" @click="clearTeamsData">Clear Teams Data</v-btn>
     </div>
 
     <div class="content">
@@ -87,9 +113,13 @@ onMounted(() => {
   left: 56px;
   right: 0;
   z-index: 999;
-  background-color: #1e2a38;
-  padding: 16px 16px 16px 16px;
+
+  padding: 16px;
   transition: left 0.2s ease;
+}
+
+.brackets-view .fixed-header h1 {
+  color: rgb(var(--v-theme-on-surface));
 }
 
 .mb-4 {

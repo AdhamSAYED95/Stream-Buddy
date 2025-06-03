@@ -1,23 +1,27 @@
 <script setup>
 import { RouterLink } from 'vue-router'
-import { ref } from 'vue' // 1. Import ref
+import { ref, onMounted } from 'vue'
 
-// 2. Reactive variable to control drawer pinning state
-// false = hover behavior, true = permanently expanded
-const isDrawerPinned = ref(false)
+const navigationMode = ref('mini')
 
-// 3. Function to toggle the state
-function togglePinDrawer() {
-  isDrawerPinned.value = !isDrawerPinned.value
+function updateNavigationMode(mode) {
+  navigationMode.value = mode
 }
+
+onMounted(() => {
+  const savedNavMode = localStorage.getItem('navigation-mode')
+  if (savedNavMode) {
+    navigationMode.value = savedNavMode
+  }
+})
 </script>
 
 <template>
   <v-app>
     <v-layout>
       <v-navigation-drawer
-        :expand-on-hover="!isDrawerPinned"
-        :rail="!isDrawerPinned"
+        :expand-on-hover="navigationMode === 'mini'"
+        :rail="navigationMode === 'mini'"
         permanent
         :width="240"
         class="navigation-drawer"
@@ -43,19 +47,15 @@ function togglePinDrawer() {
               <v-list-item-title>Today's Matches</v-list-item-title>
             </RouterLink>
           </v-list-item>
-
-          <v-divider class="my-2"></v-divider>
-          <v-list-item
-            :prepend-icon="isDrawerPinned ? 'mdi-pin-off-outline' : 'mdi-pin-outline'"
-            :title="isDrawerPinned ? 'Switch to hover expand' : 'Pin navigation open'"
-            class="pin-toggle-list-item"
-            @click="togglePinDrawer"
-          >
+          <v-list-item prepend-icon="mdi-cog">
+            <RouterLink to="/Settings" class="nav-link">
+              <v-list-item-title>Settings</v-list-item-title>
+            </RouterLink>
           </v-list-item>
         </v-list>
       </v-navigation-drawer>
       <v-main class="main-content">
-        <router-view v-slot="{ Component }">
+        <router-view v-slot="{ Component }" @update:navigation-mode="updateNavigationMode">
           <Transition name="fade" mode="out-in">
             <keep-alive>
               <component :is="Component" />
@@ -72,7 +72,7 @@ function togglePinDrawer() {
   text-decoration: none;
   color: inherit;
   width: 100%;
-  display: block; /* Ensure RouterLink fills the item for clickability */
+  display: block;
 }
 
 .v-list-item-title {
@@ -80,19 +80,17 @@ function togglePinDrawer() {
 }
 
 .v-list-item:hover {
-  background-color: #34495e !important;
+  background-color: rgb(var(--v-theme-hover-item)) !important;
 }
 
 /* Style for the active route link */
-.v-list-item .router-link-active .v-list-item-title, /* Target title specifically for active */
+.v-list-item .router-link-active .v-list-item-title,
 .v-list-item .router-link-active .v-icon {
-  /* Target icon if you want to color it too */
-  color: #00c853 !important;
+  color: rgb(var(--v-theme-active-item)) !important;
 }
 
 .v-list-item.router-link-active {
-  /* If you want to style the item background itself */
-  background-color: #2c3e50 !important;
+  background-color: rgb(var(--v-theme-active-item-bg)) !important;
 }
 
 /* Custom class for the pin toggle button for specific styling if needed */
@@ -101,41 +99,42 @@ function togglePinDrawer() {
 }
 .pin-toggle-list-item:hover .v-list-item-title,
 .pin-toggle-list-item:hover .v-icon {
-  color: #ffffff; /* Example hover color for pin toggle text/icon */
+  color: rgb(var(--v-theme-on-surface));
 }
 
 :deep(.v-navigation-drawer) {
-  background-color: #1e2a38;
-  color: #ffffff;
+  background-color: rgb(var(--v-theme-navigation-drawer));
+  color: rgb(var(--v-theme-on-surface));
   position: fixed !important;
   top: 0;
   left: 0;
   height: 100vh;
   z-index: 1000;
-  overflow-y: hidden; /* Consider setting to 'auto' if content might overflow */
+  overflow-y: hidden;
 }
 
 .main-content {
-  margin-left: 56px; /* Default for rail */
+  margin-left: 56px;
   transition: margin-left 0.2s ease;
   min-height: 100vh;
-  background-color: #1e2a38;
+  background-color: rgb(var(--v-theme-background));
   padding: 16px;
 }
 
-/* These selectors should cover both states:
-   - hover over rail: .v-navigation-drawer--is-hovering
-   - rail=false (pinned open): .v-navigation-drawer--is-expanded (Vuetify adds this when not rail and open)
-*/
-:deep(.v-navigation-drawer--is-hovering) + .v-main,
-:deep(.v-navigation-drawer--active:not(.v-navigation-drawer--rail)) + .v-main {
-  /* More explicit for "pinned" state */
-  margin-left: 240px; /* Drawer width */
+/* Adjust fixed-header and main-content when drawer expands */
+:deep(.v-navigation-drawer--is-hovering) + .v-main .fixed-header,
+:deep(.v-navigation-drawer--active:not(.v-navigation-drawer--rail)) + .v-main .fixed-header {
+  left: calc(240px + 16px); /* Drawer width + padding */
 }
 
-:deep(.v-navigation-drawer--is-hovering) ~ .v-main .fixed-header,
-:deep(.v-navigation-drawer--active:not(.v-navigation-drawer--rail)) ~ .v-main .fixed-header {
-  left: 256px; /* v-main's margin-left (240px) + padding (16px) */
+:deep(.v-navigation-drawer--is-hovering) ~ .v-main,
+:deep(.v-navigation-drawer--active:not(.v-navigation-drawer--rail)) ~ .v-main {
+  margin-left: calc(240px + 16px);
+}
+
+:deep(.v-main .fixed-header) {
+  background-color: rgb(var(--v-theme-app-bar));
+  color: rgb(var(--v-theme-on-surface));
 }
 
 /* Define the fade transition */

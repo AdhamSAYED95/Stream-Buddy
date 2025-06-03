@@ -450,20 +450,23 @@ onUnmounted(() => {
 
 <style scoped>
 .matches-container {
-  background-color: #1e2a38;
-  color: #ffffff;
+  /* Assuming this is the main container for the matches page content, acts like a surface */
+
+  color: rgb(var(--v-theme-on-surface));
   padding: 8px;
 }
 
 .panel-row {
-  background-color: #1e2a38;
+  /* This is likely a layout row within matches-container, should be transparent */
+  background-color: transparent; /* Was #1e2a38 */
   margin-bottom: 16px;
 }
 
 .info-panel,
 .match-panel {
-  background-color: #1e2a38;
-  border: 1px solid #2c3e50;
+  /* These are specific panels within the matches page */
+  background-color: rgb(var(--v-theme-surface)); /* Was #1e2a38 */
+
   border-radius: 4px;
   padding: 0 8px 8px 8px;
 }
@@ -471,98 +474,101 @@ onUnmounted(() => {
 .panel-title {
   font-size: 16px;
   font-weight: bold;
-  color: #ffffff;
+  color: rgb(var(--v-theme-on-surface)); /* Was #ffffff */
   padding: 8px 0;
   text-transform: uppercase;
 }
 
 .team-section {
-  padding: 0 8px;
+  padding: 0 8px; /* Structural, remains as is */
 }
 
 .custom-file-input,
 .custom-text-input {
   border-radius: 4px;
   overflow: hidden;
-  margin-bottom: 8px;
+  margin-bottom: 8px; /* Structural, remains as is */
+  width: 100%;
+  max-width: 100%;
 }
 
 .custom-file-input .v-field__overlay,
 .custom-text-input .v-field__overlay,
 .custom-file-input .v-field__field,
 .custom-text-input .v-field__field {
-  background-color: #2c3e50 !important;
+  background-color: rgb(var(--v-theme-input-background)) !important; /* Was #2c3e50 */
 }
 
 .custom-file-input .v-input__control,
-.custom-text-input .v-input__control,
-.custom-file-input .v-input__slot,
-.custom-text-input .v-input__slot {
-  background-color: #2c3e50 !important;
-  border: 1px solid #2c3e50 !important;
+.custom-text-input .v-input__control {
+  /* .v-input__slot was also targeted, ensure control is sufficient */
+  background-color: rgb(var(--v-theme-input-background)) !important; /* Was #2c3e50 */
+  border: 1px solid rgb(var(--v-theme-input-border)) !important; /* Was #2c3e50, now consistent input-border */
   box-shadow: none !important;
   border-radius: 4px !important;
-  min-height: 40px !important;
+  min-height: 40px !important; /* Note: PlayerRow had 48px, this is 40px. Keeping as per original. */
   padding: 0 12px;
+  width: 100%;
+  max-width: 100%;
 }
 
 .custom-file-input .v-label,
 .custom-text-input .v-label {
-  color: #ffffff !important;
-  font-size: 12px !important;
+  color: rgb(var(--v-theme-input-label)) !important; /* Was #ffffff */
+  font-size: 12px !important; /* Note: PlayerRow had 14px. Keeping as per original. */
   font-weight: bold;
   opacity: 1 !important;
   transform: translateY(-50%) scale(1) !important;
   top: 50% !important;
   left: 12px !important;
   pointer-events: none;
-  text-transform: uppercase;
+  text-transform: uppercase; /* Specific to this component's label style */
 }
 
 .custom-file-input .v-field__input,
 .custom-text-input .v-field__input {
-  color: #ffffff !important;
+  color: rgb(var(--v-theme-input-text)) !important; /* Was #ffffff */
 }
 
 .custom-file-input .v-field__input::placeholder,
 .custom-text-input .v-field__input::placeholder {
-  color: #ffffff !important;
-  opacity: 1 !important;
+  color: rgba(
+    var(--v-theme-input-text),
+    0.7
+  ) !important; /* Was #ffffff, now themed and slightly muted */
+  opacity: 1 !important; /* Opacity is handled by rgba now */
 }
 
 .custom-file-input .v-file-input__text {
-  color: #ffffff;
+  color: rgb(var(--v-theme-input-text)); /* Was #ffffff */
   padding-right: 40px;
 }
 
 .custom-text-input input {
-  color: #ffffff;
+  color: rgb(var(--v-theme-input-text)); /* Was #ffffff */
   padding-right: 40px;
 }
-
 .add-button-file {
-  color: #00c853 !important;
+  color: rgb(var(--v-theme-primary)) !important; /* Was #00c853 */
   font-weight: bold;
   text-transform: uppercase;
-  font-size: 10px;
-  padding: 0 6px;
+  font-size: 10px; /* Structural, keeping as is */
+  padding: 0 6px; /* Structural, keeping as is */
   min-width: auto;
-  height: 80%;
+  height: 80%; /* Structural, keeping as is */
   border-radius: 0 4px 4px 0;
-  background-color: #2c3e50;
+  background-color: transparent; /* Was #2c3e50. Consistent with PlayerRow, or use a subtle theme color */
   position: absolute;
   right: 0;
-  top: 10%;
+  top: 10%; /* Structural, keeping as is */
 }
 
-.custom-text-input .v-input__append-inner .v-icon {
-  color: #ffffff !important;
-  font-size: 18px !important;
-  margin-right: 8px;
-}
-
+.custom-text-input .v-input__append-inner .v-icon,
 .custom-file-input .v-input__append-inner .v-icon {
-  color: #ffffff !important;
+  color: rgb(
+    var(--v-theme-input-label)
+  ) !important; /* Was #ffffff. Using input-label for consistency. */
+  font-size: 18px !important;
   margin-right: 8px;
 }
 

@@ -37,6 +37,11 @@ function createWindow() {
   }
 }
 
+ipcMain.handle('get-default-path', async () => {
+  const defaultJsonFilePath = await path.join(app.getPath('userData'))
+  return defaultJsonFilePath
+})
+
 ipcMain.handle('open-file-dialog', async (event, type) => {
   const filters = [{ name: 'Images', extensions: ['jpg', 'jpeg', 'png', 'gif'] }]
   const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
@@ -62,6 +67,16 @@ ipcMain.handle('create-file', async (event, filePath, content) => {
     console.error('Failed to write file:', err)
     return false
   }
+})
+
+ipcMain.handle('select-directory', async () => {
+  const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
+    properties: ['openDirectory']
+  })
+  if (canceled) {
+    return null
+  }
+  return filePaths[0]
 })
 
 app.whenReady().then(() => {
