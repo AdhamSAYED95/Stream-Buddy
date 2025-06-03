@@ -1,20 +1,16 @@
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { computed } from 'vue'
 import PlayerRow from './PlayerRow.vue'
+import { useAppStateStore } from '../store/appState'
 
-const players = ref({
-  PlayerName: '',
-  TeamName: '',
-  FavouriteWeapon: '',
-  EconomyScore: 0,
-  HeroImage: null,
-  Kills: 0,
-  Deaths: 0,
-  Assists: 0
+const store = useAppStateStore()
+const players = computed({
+  get: () => store.players,
+  set: (value) => (store.players = value)
 })
 
 const clearPlayerData = () => {
-  players.value = {
+  store.players = {
     PlayerName: '',
     TeamName: '',
     FavouriteWeapon: '',
@@ -27,35 +23,15 @@ const clearPlayerData = () => {
 }
 
 const updatePlayer = (updatedPlayer) => {
-  players.value = { ...players.value, ...updatedPlayer }
+  store.players = { ...store.players, ...updatedPlayer }
 }
 
 const createPlayerJson = async () => {
-  const jsonData = JSON.stringify(players.value, null, 2)
+  const jsonData = JSON.stringify(store.players, null, 2)
   const defaultPath = await window.api.getDefaultPath()
   const savePath = localStorage.getItem('json-save-path') || defaultPath
   await window.api.createFile(`${savePath}/ViewData/PlayersStats.json`, jsonData)
 }
-
-watch(
-  players,
-  (val) => {
-    const jsonData = JSON.stringify(val)
-    localStorage.setItem('players', jsonData)
-    console.log('localStorageww size for players:', jsonData.length, 'bytes')
-  },
-  { deep: true }
-)
-
-onMounted(() => {
-  window.addEventListener('clear-all-input-data', clearPlayerData)
-  const saved = localStorage.getItem('players')
-  if (saved) players.value = JSON.parse(saved)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('clear-all-input-data', clearPlayerData)
-})
 </script>
 
 <template>

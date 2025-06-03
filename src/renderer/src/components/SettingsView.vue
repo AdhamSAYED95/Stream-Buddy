@@ -1,9 +1,11 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue'
 import { useTheme } from 'vuetify'
+import { useAppStateStore } from '../store/appState'
 
 const theme = useTheme()
-const emit = defineEmits(['update:navigationMode', 'clearInput', 'clear-Input'])
+const store = useAppStateStore()
+const emit = defineEmits(['update:navigationMode'])
 
 const isDarkMode = ref(theme.global.name.value === 'dark')
 const isNavigationMini = ref(false)
@@ -57,7 +59,7 @@ watch(
 )
 
 const clearAllInputData = () => {
-  window.dispatchEvent(new Event('clear-all-input-data'))
+  store.clearAllData()
 }
 
 onMounted(async () => {

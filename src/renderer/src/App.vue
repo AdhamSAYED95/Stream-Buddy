@@ -7,6 +7,27 @@ const router = useRouter()
 
 const theme = useTheme()
 
+window.addEventListener('error', (event) => {
+  if (window.electronLogger) {
+    window.electronLogger.sendError({
+      type: 'Window Error',
+      message: event.message,
+      error: event.error?.stack || event.error?.toString(),
+      filename: event.filename,
+      lineno: event.lineno,
+      colno: event.colno
+    })
+  }
+})
+
+window.addEventListener('unhandledrejection', (event) => {
+  if (window.electronLogger) {
+    window.electronLogger.sendRejection({
+      reason: event.reason?.stack || event.reason?.toString() || 'Unknown rejection'
+    })
+  }
+})
+
 router.afterEach((to) => {
   localStorage.setItem('lastRoute', to.fullPath)
 })

@@ -1,31 +1,16 @@
 <script setup>
-import { ref, watch, onUnmounted, onMounted } from 'vue'
+import { computed } from 'vue'
 import TodayPanels from './TodayPanels.vue'
+import { useAppStateStore } from '../store/appState'
 
-const matches = ref({
-  date: '',
-  firstMatch: {
-    MatchTime: '',
-    leftTeamName: '',
-    rightTeamName: '',
-    leftTeamLogo: null,
-    rightTeamLogo: null,
-    leftTeamFlag: null,
-    rightTeamFlag: null
-  },
-  secondMatch: {
-    MatchTime: '',
-    leftTeamName: '',
-    rightTeamName: '',
-    leftTeamLogo: null,
-    rightTeamLogo: null,
-    leftTeamFlag: null,
-    rightTeamFlag: null
-  }
+const store = useAppStateStore()
+const matches = computed({
+  get: () => store.matches,
+  set: (value) => (store.matches = value)
 })
 
 const clearMatchesData = () => {
-  matches.value = {
+  store.matches = {
     date: '',
     firstMatch: {
       MatchTime: '',
@@ -49,36 +34,17 @@ const clearMatchesData = () => {
 }
 
 const updateMatches = (updatedMatches) => {
-  matches.value = { ...updatedMatches }
+  store.matches = { ...updatedMatches }
 }
 
 const createMatchsJson = async () => {
-  const jsonData = JSON.stringify(matches.value, null, 2)
+  const jsonData = JSON.stringify(store.matches, null, 2)
   const defaultPath = await window.api.getDefaultPath()
   const savePath = localStorage.getItem('json-save-path') || defaultPath
   await window.api.createFile(`${savePath}/ViewData/todaysmatches.json`, jsonData)
 }
-
-watch(
-  matches,
-  (val) => {
-    const jsonData = JSON.stringify(val)
-    localStorage.setItem('matches', jsonData)
-    console.log('localStorage size for matches:', jsonData.length, 'bytes')
-  },
-  { deep: true }
-)
-
-onMounted(() => {
-  const saved = localStorage.getItem('matches')
-  if (saved) matches.value = JSON.parse(saved)
-  window.addEventListener('clear-all-input-data', clearMatchesData)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('clear-all-input-data', clearMatchesData)
-})
 </script>
+
 <template>
   <div class="matches-view">
     <div class="fixed-header">

@@ -1,7 +1,11 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 
-// Custom APIs for renderer
+contextBridge.exposeInMainWorld('electronLogger', {
+  sendError: (error) => ipcRenderer.send('log-renderer-error', error),
+  sendRejection: (rejection) => ipcRenderer.send('log-renderer-rejection', rejection)
+})
+
 const api = {
   openFileDialog: (type) => ipcRenderer.invoke('open-file-dialog', type),
   createFile: (filePath, content) => ipcRenderer.invoke('create-file', filePath, content),
@@ -9,9 +13,6 @@ const api = {
   getDefaultPath: () => ipcRenderer.invoke('get-default-path')
 }
 
-// Use `contextBridge` APIs to expose Electron APIs to
-// renderer only if context isolation is enabled, otherwise
-// just add to the DOM global.
 if (process.contextIsolated) {
   try {
     contextBridge.exposeInMainWorld('electron', electronAPI)

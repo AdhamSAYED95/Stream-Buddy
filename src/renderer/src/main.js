@@ -2,6 +2,8 @@ import App from './App.vue'
 
 import { createApp } from 'vue'
 import router from './router/index.js'
+import { createPinia } from 'pinia'
+import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import 'vuetify/styles'
 import '@mdi/font/css/materialdesignicons.css'
 import { createVuetify } from 'vuetify'
@@ -83,4 +85,22 @@ const vuetify = createVuetify({
   }
 })
 
-createApp(App).use(vuetify).use(router).mount('#app')
+const pinia = createPinia()
+pinia.use(piniaPluginPersistedstate)
+
+const app = createApp(App)
+
+app.config.errorHandler = (event) => {
+  if (window.electronLogger) {
+    window.electronLogger.sendError({
+      type: 'Window Error',
+      message: event.message,
+      error: event.error?.stack || event.error?.toString(),
+      filename: event.filename,
+      lineno: event.lineno,
+      colno: event.colno
+    })
+  }
+}
+
+app.use(vuetify).use(router).use(pinia).mount('#app')
