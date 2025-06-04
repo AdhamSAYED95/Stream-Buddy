@@ -19,7 +19,8 @@ export default defineConfig({
     plugins: [
       vue(),
       vuetify({
-        autoImport: true
+        autoImport: true,
+        tree: true
       })
     ]
   }

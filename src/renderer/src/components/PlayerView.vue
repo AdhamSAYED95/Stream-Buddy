@@ -61,7 +61,6 @@ const createPlayerJson = async () => {
   left: 56px;
   right: 0;
   z-index: 999;
-
   padding: 16px;
   transition: left 0.2s ease;
 }

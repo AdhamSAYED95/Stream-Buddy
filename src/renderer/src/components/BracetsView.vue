@@ -84,15 +84,15 @@ function initializeTeams() {
   padding: 20px;
   font-family: Arial, sans-serif;
   height: 100%;
+  box-sizing: border-box;
 }
 
 .fixed-header {
   position: fixed;
-  top: 0;
   left: 56px;
   right: 0;
   z-index: 999;
-
+  top: 0;
   padding: 16px;
   transition: left 0.2s ease;
 }
@@ -113,5 +113,13 @@ function initializeTeams() {
 h1 {
   text-align: center;
   margin-bottom: 20px;
+}
+
+.brackets-view :deep(.v-text-field) {
+  contain: layout style paint;
+}
+
+.brackets-view :deep(.v-input) {
+  contain: layout style paint;
 }
 </style>
