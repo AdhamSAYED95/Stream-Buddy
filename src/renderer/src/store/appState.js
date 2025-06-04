@@ -7,7 +7,7 @@ export const useAppStateStore = defineStore('appState', {
       TeamName: '',
       FavouriteWeapon: '',
       EconomyScore: 0,
-      HeroImage: null,
+      HeroImage: '',
       Kills: 0,
       Deaths: 0,
       Assists: 0
@@ -19,19 +19,19 @@ export const useAppStateStore = defineStore('appState', {
         MatchTime: '',
         leftTeamName: '',
         rightTeamName: '',
-        leftTeamLogo: null,
-        rightTeamLogo: null,
-        leftTeamFlag: null,
-        rightTeamFlag: null
+        leftTeamLogo: '',
+        rightTeamLogo: '',
+        leftTeamFlag: '',
+        rightTeamFlag: ''
       },
       secondMatch: {
         MatchTime: '',
         leftTeamName: '',
         rightTeamName: '',
-        leftTeamLogo: null,
-        rightTeamLogo: null,
-        leftTeamFlag: null,
-        rightTeamFlag: null
+        leftTeamLogo: '',
+        rightTeamLogo: '',
+        leftTeamFlag: '',
+        rightTeamFlag: ''
       }
     }
   }),
@@ -42,7 +42,7 @@ export const useAppStateStore = defineStore('appState', {
         TeamName: '',
         FavouriteWeapon: '',
         EconomyScore: 0,
-        HeroImage: null,
+        HeroImage: '',
         Kills: 0,
         Deaths: 0,
         Assists: 0
@@ -54,19 +54,19 @@ export const useAppStateStore = defineStore('appState', {
           MatchTime: '',
           leftTeamName: '',
           rightTeamName: '',
-          leftTeamLogo: null,
-          rightTeamLogo: null,
-          leftTeamFlag: null,
-          rightTeamFlag: null
+          leftTeamLogo: '',
+          rightTeamLogo: '',
+          leftTeamFlag: '',
+          rightTeamFlag: ''
         },
         secondMatch: {
           MatchTime: '',
           leftTeamName: '',
           rightTeamName: '',
-          leftTeamLogo: null,
-          rightTeamLogo: null,
-          leftTeamFlag: null,
-          rightTeamFlag: null
+          leftTeamLogo: '',
+          rightTeamLogo: '',
+          leftTeamFlag: '',
+          rightTeamFlag: ''
         }
       }
     }
@@ -82,8 +82,8 @@ function initializeTeams() {
   for (let i = 1; i < 33; i++) {
     initialTeamsObject[i] = {
       id: i,
-      TeamImage: null,
-      FlagImage: null,
+      TeamImage: '',
+      FlagImage: '',
       TeamName: '',
       Score: 0
     }

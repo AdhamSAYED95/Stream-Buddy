@@ -51,16 +51,6 @@ function createWindow() {
     )
   })
 
-  mainWindow.webContents.on('unresponsive', () => {
-    log.warn('BrowserWindow webContents became unresponsive.')
-    // Optionally, inform the user or attempt to reload/close
-  })
-
-  mainWindow.webContents.on('render-process-gone', (event, details) => {
-    log.error('Render process gone.', details)
-    // Optionally, try to reload or inform the user
-  })
-
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
     if (mainWindow && mainWindow.webContents) {
@@ -89,7 +79,6 @@ ipcMain.handle('open-file-dialog', async (event, type) => {
     filters
   })
   if (canceled) {
-    log.info('Open file dialog was cancelled.')
     return null
   }
 
@@ -104,7 +93,6 @@ ipcMain.handle('create-file', async (event, filePath, content) => {
     const directory = path.dirname(filePath)
     await fs.mkdir(directory, { recursive: true })
     await fs.writeFile(filePath, content)
-    log.info(`File created successfully: ${filePath}`)
     return true
   } catch (err) {
     console.error('Failed to write file:', err)

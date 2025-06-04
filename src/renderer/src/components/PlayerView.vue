@@ -15,7 +15,7 @@ const clearPlayerData = () => {
     TeamName: '',
     FavouriteWeapon: '',
     EconomyScore: 0,
-    HeroImage: null,
+    HeroImage: '',
     Kills: 0,
     Deaths: 0,
     Assists: 0

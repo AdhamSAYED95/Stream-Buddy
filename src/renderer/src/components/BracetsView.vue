@@ -49,8 +49,8 @@ function initializeTeams() {
   for (let i = 1; i < 33; i++) {
     initialTeamsObject[i] = {
       id: i,
-      TeamImage: null,
-      FlagImage: null,
+      TeamImage: '',
+      FlagImage: '',
       TeamName: '',
       Score: 0
     }

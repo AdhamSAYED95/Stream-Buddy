@@ -16,19 +16,19 @@ const clearMatchesData = () => {
       MatchTime: '',
       leftTeamName: '',
       rightTeamName: '',
-      leftTeamLogo: null,
-      rightTeamLogo: null,
-      leftTeamFlag: null,
-      rightTeamFlag: null
+      leftTeamLogo: '',
+      rightTeamLogo: '',
+      leftTeamFlag: '',
+      rightTeamFlag: ''
     },
     secondMatch: {
       MatchTime: '',
       leftTeamName: '',
       rightTeamName: '',
-      leftTeamLogo: null,
-      rightTeamLogo: null,
-      leftTeamFlag: null,
-      rightTeamFlag: null
+      leftTeamLogo: '',
+      rightTeamLogo: '',
+      leftTeamFlag: '',
+      rightTeamFlag: ''
     }
   }
 }
