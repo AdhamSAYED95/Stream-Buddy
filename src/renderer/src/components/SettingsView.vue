@@ -8,10 +8,10 @@ const store = useAppStateStore()
 const emit = defineEmits(['update:navigationMode'])
 
 const isDarkMode = ref(theme.global.name.value === 'dark')
-const isNavigationMini = ref(false)
+const isNavigationMini = ref(true)
 const jsonSavePath = ref('')
 const appVersion = ref('')
-const updateStatus = ref('idle') // idle, checking, available, not-available, downloading, downloaded, error
+const updateStatus = ref('idle')
 const updateInfo = ref(null)
 const downloadProgress = ref(0)
 const updateError = ref(null)
