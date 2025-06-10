@@ -1,5 +1,5 @@
 import { app, shell, BrowserWindow, dialog, ipcMain } from 'electron'
-import { join } from 'path' // Corrected import
+import { join } from 'path'
 import path from 'path'
 import * as fs from 'node:fs/promises'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
@@ -37,7 +37,7 @@ function createWindow() {
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
-    log.info('Main window ready and shown.')
+    autoUpdater.checkForUpdates()
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -67,9 +67,6 @@ ipcMain.handle('app-version', () => {
 })
 ipcMain.handle('check-for-updates', () => {
   autoUpdater.checkForUpdates()
-})
-ipcMain.on('install-update', () => {
-  autoUpdater.quitAndInstall()
 })
 
 ipcMain.handle('get-default-path', async () => {
@@ -112,7 +109,6 @@ ipcMain.handle('create-file', async (event, filePath, content) => {
 
 ipcMain.handle('select-directory', async () => {
   if (!mainWindow) {
-    // Ensure mainWindow is available
     log.error('Cannot show select-directory-dialog, mainWindow is not available.')
     return null
   }
@@ -125,12 +121,48 @@ ipcMain.handle('select-directory', async () => {
   return filePaths[0]
 })
 
+ipcMain.on('log-renderer-error', (_, error) => {
+  log.error('Renderer Error:', error)
+})
+
+ipcMain.on('log-renderer-rejection', (_, rejection) => {
+  log.error('Renderer Promise Rejection:', rejection)
+})
+
+ipcMain.on('install-update', () => {
+  autoUpdater.quitAndInstall()
+})
+
 autoUpdater.on('checking-for-update', () => {
   mainWindow.webContents.send('update-status', 'checking')
 })
 
 autoUpdater.on('update-available', (info) => {
-  mainWindow.webContents.send('update-status', 'available', info)
+  // Instead of just sending to renderer, show a dialog first
+  mainWindow.webContents.send('update-status', 'available', info) // Still send to update the UI
+  log.info(`Update available: ${info.version}`)
+
+  dialog
+    .showMessageBox(mainWindow, {
+      type: 'info',
+      title: 'Update Available',
+      message: `A new version ${info.version} is available.`,
+      detail: info.releaseNotes
+        ? `What's New:\n\n${info.releaseNotes}`
+        : 'No release notes provided.',
+      buttons: ['Update Now', 'Later'],
+      defaultId: 0,
+      cancelId: 1
+    })
+    .then((response) => {
+      if (response.response === 0) {
+        log.info('User chose to update now, starting download...')
+        autoUpdater.downloadUpdate()
+      }
+    })
+    .catch((err) => {
+      log.error('Error showing update dialog:', err)
+    })
 })
 
 autoUpdater.on('update-not-available', (info) => {
@@ -167,16 +199,7 @@ app.whenReady().then(() => {
 })
 
 app.on('window-all-closed', () => {
-  log.info('All windows closed.')
   if (process.platform !== 'darwin') {
     app.quit()
   }
-})
-
-ipcMain.on('log-renderer-error', (_, error) => {
-  log.error('Renderer Error:', error)
-})
-
-ipcMain.on('log-renderer-rejection', (_, rejection) => {
-  log.error('Renderer Promise Rejection:', rejection)
 })
