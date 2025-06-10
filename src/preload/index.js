@@ -10,7 +10,12 @@ const api = {
   openFileDialog: (type) => ipcRenderer.invoke('open-file-dialog', type),
   createFile: (filePath, content) => ipcRenderer.invoke('create-file', filePath, content),
   selectDirectory: () => ipcRenderer.invoke('select-directory'),
-  getDefaultPath: () => ipcRenderer.invoke('get-default-path')
+  getDefaultPath: () => ipcRenderer.invoke('get-default-path'),
+  getAppVersion: () => ipcRenderer.invoke('app-version'),
+  checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
+  installUpdate: () => ipcRenderer.send('install-update'),
+  onUpdateStatus: (callback) =>
+    ipcRenderer.on('update-status', (_event, ...args) => callback(...args))
 }
 
 if (process.contextIsolated) {

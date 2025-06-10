@@ -5,6 +5,7 @@ import * as fs from 'node:fs/promises'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import log from 'electron-log'
+import { autoUpdater } from 'electron-updater'
 
 log.transports.file.format = '[{y}-{m}-{d} {h}:{i}:{s}.{ms}] [{level}] {text}'
 
@@ -36,7 +37,7 @@ function createWindow() {
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
-    log.info('Main window ready and shown.') // Example of a critical usage behavior log
+    log.info('Main window ready and shown.')
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -44,7 +45,6 @@ function createWindow() {
     return { action: 'deny' }
   })
 
-  // --- Error handling for critical WebContents events ---
   mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
     log.error(
       `Failed to load URL: ${validatedURL} - Error Code: ${errorCode} - ${errorDescription}`
@@ -62,6 +62,16 @@ function createWindow() {
   }
 }
 
+ipcMain.handle('app-version', () => {
+  return app.getVersion()
+})
+ipcMain.handle('check-for-updates', () => {
+  autoUpdater.checkForUpdates()
+})
+ipcMain.on('install-update', () => {
+  autoUpdater.quitAndInstall()
+})
+
 ipcMain.handle('get-default-path', async () => {
   const defaultJsonFilePath = await path.join(app.getPath('userData'))
   return defaultJsonFilePath
@@ -69,7 +79,6 @@ ipcMain.handle('get-default-path', async () => {
 
 ipcMain.handle('open-file-dialog', async (event, type) => {
   if (!mainWindow) {
-    // Ensure mainWindow is available
     log.error('Cannot show open-file-dialog, mainWindow is not available.')
     return null
   }
@@ -96,7 +105,7 @@ ipcMain.handle('create-file', async (event, filePath, content) => {
     return true
   } catch (err) {
     console.error('Failed to write file:', err)
-    log.error('Failed to write file:', err) // Log the error
+    log.error('Failed to write file:', err)
     return false
   }
 })
@@ -116,9 +125,31 @@ ipcMain.handle('select-directory', async () => {
   return filePaths[0]
 })
 
-app.whenReady().then(() => {
-  log.info('App is ready.') // Log app ready event
+autoUpdater.on('checking-for-update', () => {
+  mainWindow.webContents.send('update-status', 'checking')
+})
 
+autoUpdater.on('update-available', (info) => {
+  mainWindow.webContents.send('update-status', 'available', info)
+})
+
+autoUpdater.on('update-not-available', (info) => {
+  mainWindow.webContents.send('update-status', 'not-available', info)
+})
+
+autoUpdater.on('error', (err) => {
+  mainWindow.webContents.send('update-status', 'error', err)
+})
+
+autoUpdater.on('download-progress', (progressObj) => {
+  mainWindow.webContents.send('update-status', 'downloading', progressObj)
+})
+
+autoUpdater.on('update-downloaded', (info) => {
+  mainWindow.webContents.send('update-status', 'downloaded', info)
+})
+
+app.whenReady().then(() => {
   electronApp.setAppUserModelId('com.electron')
 
   app.on('browser-window-created', (_, window) => {
@@ -138,7 +169,6 @@ app.whenReady().then(() => {
 app.on('window-all-closed', () => {
   log.info('All windows closed.')
   if (process.platform !== 'darwin') {
-    log.info('Quitting app because platform is not darwin.')
     app.quit()
   }
 })

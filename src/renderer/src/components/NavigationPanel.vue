@@ -27,31 +27,31 @@ onMounted(() => {
         class="navigation-drawer"
       >
         <v-list density="compact" nav>
-          <v-list-item prepend-icon="mdi-home">
-            <RouterLink to="/" class="nav-link">
+          <RouterLink to="/" class="nav-link">
+            <v-list-item prepend-icon="mdi-home">
               <v-list-item-title>Home</v-list-item-title>
-            </RouterLink>
-          </v-list-item>
-          <v-list-item prepend-icon="mdi-tournament">
-            <RouterLink to="/TeamsView" class="nav-link">
+            </v-list-item>
+          </RouterLink>
+          <RouterLink to="/TeamsView" class="nav-link">
+            <v-list-item prepend-icon="mdi-tournament">
               <v-list-item-title>Brackets View</v-list-item-title>
-            </RouterLink>
-          </v-list-item>
-          <v-list-item prepend-icon="mdi-account-star">
-            <RouterLink to="/PlayerStats" class="nav-link">
+            </v-list-item>
+          </RouterLink>
+          <RouterLink to="/PlayerStats" class="nav-link">
+            <v-list-item prepend-icon="mdi-account-star">
               <v-list-item-title>Players Stats</v-list-item-title>
-            </RouterLink>
-          </v-list-item>
-          <v-list-item prepend-icon="mdi-calendar-today">
-            <RouterLink to="/TodayMatches" class="nav-link">
+            </v-list-item>
+          </RouterLink>
+          <RouterLink to="/TodayMatches" class="nav-link">
+            <v-list-item prepend-icon="mdi-calendar-today">
               <v-list-item-title>Today's Matches</v-list-item-title>
-            </RouterLink>
-          </v-list-item>
-          <v-list-item prepend-icon="mdi-cog">
-            <RouterLink to="/Settings" class="nav-link">
+            </v-list-item>
+          </RouterLink>
+          <RouterLink to="/Settings" class="nav-link">
+            <v-list-item prepend-icon="mdi-cog">
               <v-list-item-title>Settings</v-list-item-title>
-            </RouterLink>
-          </v-list-item>
+            </v-list-item>
+          </RouterLink>
         </v-list>
       </v-navigation-drawer>
       <v-main class="main-content">
@@ -84,13 +84,13 @@ onMounted(() => {
 }
 
 /* Style for the active route link */
-.v-list-item .router-link-active .v-list-item-title,
-.v-list-item .router-link-active .v-icon {
-  color: rgb(var(--v-theme-active-item)) !important;
+.nav-link.router-link-active .v-list-item {
+  background-color: rgb(var(--v-theme-active-item-bg)) !important; /* Green background */
 }
 
-.v-list-item.router-link-active {
-  background-color: rgb(var(--v-theme-active-item-bg)) !important;
+.nav-link.router-link-active .clickable-icon,
+.nav-link.router-link-active .v-list-item-title {
+  color: rgb(var(--v-theme-active-item)) !important; /* Green text/icon */
 }
 
 /* Custom class for the pin toggle button for specific styling if needed */

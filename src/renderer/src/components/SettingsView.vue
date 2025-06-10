@@ -10,6 +10,11 @@ const emit = defineEmits(['update:navigationMode'])
 const isDarkMode = ref(theme.global.name.value === 'dark')
 const isNavigationMini = ref(false)
 const jsonSavePath = ref('')
+const appVersion = ref('')
+const updateStatus = ref('idle') // idle, checking, available, not-available, downloading, downloaded, error
+const updateInfo = ref(null)
+const downloadProgress = ref(0)
+const updateError = ref(null)
 
 function toggleTheme(value) {
   const newThemeName = value ? 'dark' : 'light'
@@ -48,6 +53,19 @@ const resetSettings = async () => {
   localStorage.removeItem('json-save-path')
 }
 
+const checkForUpdates = () => {
+  updateStatus.value = 'checking'
+  window.api.checkForUpdates()
+}
+
+const installUpdate = () => {
+  window.api.installUpdate()
+}
+
+const clearAllInputData = () => {
+  store.clearAllData()
+}
+
 watch(
   () => theme.global.name.value,
   (newName) => {
@@ -57,10 +75,6 @@ watch(
     }
   }
 )
-
-const clearAllInputData = () => {
-  store.clearAllData()
-}
 
 onMounted(async () => {
   // Load theme
@@ -78,6 +92,22 @@ onMounted(async () => {
   if (savedNavMode) {
     isNavigationMini.value = savedNavMode === 'mini'
   }
+
+  const version = await window.api.getAppVersion()
+  appVersion.value = version
+
+  window.api.onUpdateStatus((status, details) => {
+    updateStatus.value = status
+    if (status === 'available' || status === 'not-available' || status === 'downloaded') {
+      updateInfo.value = details
+    }
+    if (status === 'downloading') {
+      downloadProgress.value = details.percent
+    }
+    if (status === 'error') {
+      updateError.value = details
+    }
+  })
 })
 </script>
 
@@ -161,6 +191,63 @@ onMounted(async () => {
               <v-divider class="my-2"></v-divider>
               <v-card-text>
                 <v-btn color="warning" @click="resetSettings">Reset All Settings</v-btn>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col cols="12">
+            <v-card class="setting-card">
+              <v-card-title>Application Updates</v-card-title>
+              <v-card-subtitle
+                >Keep your application up-to-date with the latest features.</v-card-subtitle
+              >
+              <v-divider class="my-2"></v-divider>
+              <v-card-text>
+                <p class="mb-3">Current Version: {{ appVersion }}</p>
+
+                <div v-if="updateStatus === 'idle'">
+                  <v-btn color="primary" @click="checkForUpdates">Check for Updates</v-btn>
+                </div>
+
+                <div v-if="updateStatus === 'checking'">
+                  <p>Checking for updates...</p>
+                  <v-progress-linear indeterminate color="primary"></v-progress-linear>
+                </div>
+
+                <div v-if="updateStatus === 'error'">
+                  <p class="text-red">
+                    Update Error: {{ updateError?.message || 'Unknown error' }}
+                  </p>
+                  <v-btn color="primary" class="mt-2" @click="checkForUpdates">Try Again</v-btn>
+                </div>
+
+                <div v-if="updateStatus === 'not-available'">
+                  <p>You are on the latest version.</p>
+                  <v-btn color="primary" class="mt-2" @click="checkForUpdates">Check Again</v-btn>
+                </div>
+
+                <div v-if="updateStatus === 'available'">
+                  <p>A new version ({{ updateInfo?.version }}) is available!</p>
+                  <v-btn color="secondary" disabled @click="checkForUpdates">Downloading...</v-btn>
+                </div>
+
+                <div v-if="updateStatus === 'downloading'">
+                  <p>Downloading update ({{ updateInfo?.version }})...</p>
+                  <v-progress-linear
+                    :model-value="downloadProgress"
+                    color="primary"
+                    class="mt-2"
+                  ></v-progress-linear>
+                  <p class="text-caption text-center">{{ Math.round(downloadProgress) }}%</p>
+                </div>
+
+                <div v-if="updateStatus === 'downloaded'">
+                  <p>Update ({{ updateInfo?.version }}) downloaded. Restart to install.</p>
+                  <v-btn color="success" class="mt-2" @click="installUpdate"
+                    >Restart & Install</v-btn
+                  >
+                </div>
               </v-card-text>
             </v-card>
           </v-col>
