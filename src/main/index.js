@@ -158,6 +158,7 @@ autoUpdater.on('update-available', (info) => {
       if (response.response === 0) {
         log.info('User chose to update now, starting download...')
         autoUpdater.downloadUpdate()
+        autoUpdater.quitAndInstall()
       }
     })
     .catch((err) => {
