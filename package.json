@@ -1,6 +1,6 @@
 {
   "name": "stream-buddy",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "An Electron application with Vue",
   "main": "./out/main/index.js",
   "author": "example.com",
@@ -12,6 +12,7 @@
     "dev": "electron-vite dev --watch",
     "build": "electron-vite build",
     "postinstall": "electron-builder install-app-deps",
+    "publish": "npm run build && electron-builder --publish always",
     "build:unpack": "npm run build && electron-builder --dir",
     "build:win": "npm run build && electron-builder --win",
     "build:mac": "npm run build && electron-builder --mac",
