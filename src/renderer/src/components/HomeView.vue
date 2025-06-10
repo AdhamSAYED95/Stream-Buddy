@@ -2,7 +2,7 @@
 
 <template>
   <div class="home-container">
-    <h1 class="welcome-message">Welcome to Stream Buddy</h1>
+    <h1 class="welcome-message">Welcome to ADHAMSSDS</h1>
   </div>
 </template>
 
