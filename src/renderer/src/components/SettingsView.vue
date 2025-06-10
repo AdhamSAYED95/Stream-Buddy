@@ -227,9 +227,26 @@ onMounted(async () => {
                   <v-btn color="primary" class="mt-2" @click="checkForUpdates">Check Again</v-btn>
                 </div>
 
-                <div v-if="updateStatus === 'available'">
+                <div v-if="updateStatus === 'available' || updateStatus === 'downloaded'">
                   <p>A new version ({{ updateInfo?.version }}) is available!</p>
-                  <v-btn color="secondary" disabled @click="checkForUpdates">Downloading...</v-btn>
+                  <div v-if="updateInfo?.releaseNotes">
+                    <h4 class="mt-4 mb-2">What's New:</h4>
+                    <div class="release-notes-content" v-html="updateInfo.releaseNotes"></div>
+                  </div>
+                  <v-btn
+                    v-if="updateStatus === 'available'"
+                    color="secondary"
+                    disabled
+                    @click="checkForUpdates"
+                    >Downloading...</v-btn
+                  >
+                  <v-btn
+                    v-if="updateStatus === 'downloaded'"
+                    color="success"
+                    class="mt-2"
+                    @click="installUpdate"
+                    >Restart & Install</v-btn
+                  >
                 </div>
 
                 <div v-if="updateStatus === 'downloading'">
@@ -240,13 +257,6 @@ onMounted(async () => {
                     class="mt-2"
                   ></v-progress-linear>
                   <p class="text-caption text-center">{{ Math.round(downloadProgress) }}%</p>
-                </div>
-
-                <div v-if="updateStatus === 'downloaded'">
-                  <p>Update ({{ updateInfo?.version }}) downloaded. Restart to install.</p>
-                  <v-btn color="success" class="mt-2" @click="installUpdate"
-                    >Restart & Install</v-btn
-                  >
                 </div>
               </v-card-text>
             </v-card>
@@ -295,5 +305,39 @@ onMounted(async () => {
 
 .setting-card .v-card-title {
   font-weight: 500;
+}
+
+.release-notes-content {
+  max-height: 200px; /* Limit height for scrollability */
+  overflow-y: auto; /* Add scrollbar if content exceeds height */
+  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  padding: 12px;
+  background-color: rgba(var(--v-theme-surface-variant), 0.1);
+  border-radius: 4px;
+}
+
+/* Basic styling for markdown rendering (if releaseNotes is markdown) */
+.release-notes-content h1,
+.release-notes-content h2,
+.release-notes-content h3,
+.release-notes-content h4,
+.release-notes-content h5,
+.release-notes-content h6 {
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+}
+
+.release-notes-content p {
+  margin-bottom: 0.5em;
+}
+
+.release-notes-content ul {
+  list-style-type: disc;
+  margin-left: 20px;
+}
+
+.release-notes-content ol {
+  list-style-type: decimal;
+  margin-left: 20px;
 }
 </style>
