@@ -20,6 +20,10 @@ process.on('unhandledRejection', (reason, promise) => {
   log.error('Unhandled Main Process Rejection:', reason)
 })
 
+autoUpdater.autoDownload = false
+
+let updateTriggeredByAutoCheck = false
+
 let mainWindow = null
 
 function createWindow() {
@@ -37,6 +41,7 @@ function createWindow() {
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
+    updateTriggeredByAutoCheck = true
     autoUpdater.checkForUpdates()
   })
 
@@ -66,6 +71,7 @@ ipcMain.handle('app-version', () => {
   return app.getVersion()
 })
 ipcMain.handle('check-for-updates', () => {
+  updateTriggeredByAutoCheck = false
   autoUpdater.checkForUpdates()
 })
 
@@ -145,7 +151,7 @@ autoUpdater.on('update-available', (info) => {
     .showMessageBox(mainWindow, {
       type: 'info',
       title: 'Update Available',
-      message: `A new version ${info.version} is available. Would you like to download it now?`,
+      message: `A new version ${info.version} is available.`,
       detail: info.releaseNotes
         ? `What's New:\n\n${info.releaseNotes}`
         : 'No release notes provided.',
@@ -178,26 +184,10 @@ autoUpdater.on('download-progress', (progressObj) => {
 
 autoUpdater.on('update-downloaded', (info) => {
   mainWindow.webContents.send('update-status', 'downloaded', info)
-
-  dialog
-    .showMessageBox(mainWindow, {
-      type: 'info',
-      title: 'Update Ready to Install',
-      message: `The update (v${info.version}) has been downloaded. Restart the application to apply the update.`,
-      buttons: ['Restart Now', 'Install Later'],
-      defaultId: 0,
-      cancelId: 1
-    })
-    .then(({ response }) => {
-      if (response === 0) {
-        log.info('User chose to restart now. Quitting and installing...')
-        autoUpdater.quitAndInstall()
-      } else {
-        log.info(
-          'User chose to install later. The update will be installed on the next app launch.'
-        )
-      }
-    })
+  if (updateTriggeredByAutoCheck) {
+    log.info('Auto-update downloaded. Quitting and installing...')
+    autoUpdater.quitAndInstall()
+  }
 })
 
 app.whenReady().then(() => {
