@@ -53,15 +53,6 @@ const resetSettings = async () => {
   localStorage.removeItem('json-save-path')
 }
 
-const checkForUpdates = () => {
-  updateStatus.value = 'checking'
-  window.api.checkForUpdates()
-}
-
-const installUpdate = () => {
-  window.api.installUpdate()
-}
-
 const clearAllInputData = () => {
   store.clearAllData()
 }
@@ -198,66 +189,10 @@ onMounted(async () => {
         <v-row>
           <v-col cols="12">
             <v-card class="setting-card">
-              <v-card-title>Application Updates</v-card-title>
-              <v-card-subtitle
-                >Keep your application up-to-date with the latest features.</v-card-subtitle
-              >
+              <v-card-title>About The App</v-card-title>
               <v-divider class="my-2"></v-divider>
               <v-card-text>
                 <p class="mb-3">Current Version: {{ appVersion }}</p>
-
-                <div v-if="updateStatus === 'idle'">
-                  <v-btn color="primary" @click="checkForUpdates">Check for Updates</v-btn>
-                </div>
-
-                <div v-if="updateStatus === 'checking'">
-                  <p>Checking for updates...</p>
-                  <v-progress-linear indeterminate color="primary"></v-progress-linear>
-                </div>
-
-                <div v-if="updateStatus === 'error'">
-                  <p class="text-red">
-                    Update Error: {{ updateError?.message || 'Unknown error' }}
-                  </p>
-                  <v-btn color="primary" class="mt-2" @click="checkForUpdates">Try Again</v-btn>
-                </div>
-
-                <div v-if="updateStatus === 'not-available'">
-                  <p>You are on the latest version.</p>
-                  <v-btn color="primary" class="mt-2" @click="checkForUpdates">Check Again</v-btn>
-                </div>
-
-                <div v-if="updateStatus === 'available' || updateStatus === 'downloaded'">
-                  <p>A new version ({{ updateInfo?.version }}) is available!</p>
-                  <div v-if="updateInfo?.releaseNotes">
-                    <h4 class="mt-4 mb-2">What's New:</h4>
-                    <div class="release-notes-content" v-html="updateInfo.releaseNotes"></div>
-                  </div>
-                  <v-btn
-                    v-if="updateStatus === 'available'"
-                    color="secondary"
-                    disabled
-                    @click="checkForUpdates"
-                    >Downloading...</v-btn
-                  >
-                  <v-btn
-                    v-if="updateStatus === 'downloaded'"
-                    color="success"
-                    class="mt-2"
-                    @click="installUpdate"
-                    >Restart & Install</v-btn
-                  >
-                </div>
-
-                <div v-if="updateStatus === 'downloading'">
-                  <p>Downloading update ({{ updateInfo?.version }})...</p>
-                  <v-progress-linear
-                    :model-value="downloadProgress"
-                    color="primary"
-                    class="mt-2"
-                  ></v-progress-linear>
-                  <p class="text-caption text-center">{{ Math.round(downloadProgress) }}%</p>
-                </div>
               </v-card-text>
             </v-card>
           </v-col>

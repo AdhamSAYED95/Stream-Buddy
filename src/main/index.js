@@ -70,10 +70,6 @@ function createWindow() {
 ipcMain.handle('app-version', () => {
   return app.getVersion()
 })
-ipcMain.handle('check-for-updates', () => {
-  updateTriggeredByAutoCheck = false
-  autoUpdater.checkForUpdates()
-})
 
 ipcMain.handle('get-default-path', async () => {
   const defaultJsonFilePath = await path.join(app.getPath('userData'))
@@ -133,10 +129,6 @@ ipcMain.on('log-renderer-error', (_, error) => {
 
 ipcMain.on('log-renderer-rejection', (_, rejection) => {
   log.error('Renderer Promise Rejection:', rejection)
-})
-
-ipcMain.on('install-update', () => {
-  autoUpdater.quitAndInstall()
 })
 
 autoUpdater.on('checking-for-update', () => {
