@@ -3,20 +3,20 @@ import { defineStore } from 'pinia'
 export const useAppStateStore = defineStore('appState', {
   state: () => ({
     players: {
-      PlayerName: '',
-      TeamName: '',
-      FavouriteWeapon: '',
-      EconomyScore: 0,
-      HeroImage: '',
-      Kills: 0,
-      Deaths: 0,
-      Assists: 0
+      playerName: '',
+      teamName: '',
+      favouriteWeapon: '',
+      economyScore: 0,
+      heroImage: '',
+      kills: 0,
+      deaths: 0,
+      assists: 0
     },
     teams: initializeTeams(),
     matches: {
       date: '',
       firstMatch: {
-        MatchTime: '',
+        matchTime: '',
         leftTeamName: '',
         rightTeamName: '',
         leftTeamLogo: '',
@@ -25,7 +25,7 @@ export const useAppStateStore = defineStore('appState', {
         rightTeamFlag: ''
       },
       secondMatch: {
-        MatchTime: '',
+        matchTime: '',
         leftTeamName: '',
         rightTeamName: '',
         leftTeamLogo: '',
@@ -38,20 +38,20 @@ export const useAppStateStore = defineStore('appState', {
   actions: {
     clearAllData() {
       this.players = {
-        PlayerName: '',
-        TeamName: '',
-        FavouriteWeapon: '',
-        EconomyScore: 0,
-        HeroImage: '',
-        Kills: 0,
-        Deaths: 0,
-        Assists: 0
+        playerName: '',
+        teamName: '',
+        favouriteWeapon: '',
+        economyScore: 0,
+        heroImage: '',
+        kills: 0,
+        deaths: 0,
+        assists: 0
       }
       this.teams = initializeTeams()
       this.matches = {
         date: '',
         firstMatch: {
-          MatchTime: '',
+          matchTime: '',
           leftTeamName: '',
           rightTeamName: '',
           leftTeamLogo: '',
@@ -60,7 +60,7 @@ export const useAppStateStore = defineStore('appState', {
           rightTeamFlag: ''
         },
         secondMatch: {
-          MatchTime: '',
+          matchTime: '',
           leftTeamName: '',
           rightTeamName: '',
           leftTeamLogo: '',
@@ -82,10 +82,10 @@ function initializeTeams() {
   for (let i = 1; i < 33; i++) {
     initialTeamsObject[i] = {
       id: i,
-      TeamImage: '',
-      FlagImage: '',
-      TeamName: '',
-      Score: 0
+      teamImage: '',
+      flagImage: '',
+      teamName: '',
+      score: 0
     }
   }
   return initialTeamsObject

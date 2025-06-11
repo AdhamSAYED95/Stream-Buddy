@@ -11,14 +11,14 @@ const players = computed({
 
 const clearPlayerData = () => {
   store.players = {
-    PlayerName: '',
-    TeamName: '',
-    FavouriteWeapon: '',
-    EconomyScore: 0,
-    HeroImage: '',
-    Kills: 0,
-    Deaths: 0,
-    Assists: 0
+    playerName: '',
+    teamName: '',
+    favouriteWeapon: '',
+    economyScore: 0,
+    heroImage: '',
+    kills: 0,
+    deaths: 0,
+    assists: 0
   }
 }
 

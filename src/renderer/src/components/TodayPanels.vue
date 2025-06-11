@@ -36,13 +36,12 @@ const updateMatchField = (matchKey, field, value) => {
   emit('update:matches', updatedMatches)
 }
 
-// updateImageField now primarily expects a file path (or null)
 const updateImageField = (matchKey, field, filePath) => {
   const updatedMatches = {
     ...props.matches,
     [matchKey]: {
       ...props.matches[matchKey],
-      [field]: filePath // Store the file path
+      [field]: filePath
     }
   }
   emit('update:matches', updatedMatches)
@@ -51,27 +50,24 @@ const updateImageField = (matchKey, field, filePath) => {
 const selectImageViaElectron = async (matchKey, field) => {
   if (window.api && typeof window.api.openFileDialog === 'function') {
     try {
-      const result = await window.api.openFileDialog('image') // 'image' is a hint for the dialog
+      const result = await window.api.openFileDialog('image')
       if (result && result.path) {
         updateImageField(matchKey, field, result.path)
       }
     } catch (error) {
       console.error('Error opening file dialog:', error)
-      // Optionally: show a user-facing error message
     }
   } else {
     console.error(
       'window.api.openFileDialog is not available. Ensure it is exposed via preload script in Electron.'
     )
-    // Optionally: show a user-facing error message or disable the button
   }
 }
 
 const handleClearImage = (matchKey, field) => {
-  updateImageField(matchKey, field, null)
+  updateImageField(matchKey, field, '')
 }
 
-// Helper to create computed properties for filenames
 const createFileNameComputed = (matchKey, fieldName) => {
   return computed(() => {
     const imagePath = props.matches[matchKey]?.[fieldName]
@@ -82,13 +78,11 @@ const createFileNameComputed = (matchKey, fieldName) => {
   })
 }
 
-// Computed file names for firstMatch
 const firstMatchLeftLogoFileName = createFileNameComputed('firstMatch', 'leftTeamLogo')
 const firstMatchRightLogoFileName = createFileNameComputed('firstMatch', 'rightTeamLogo')
 const firstMatchLeftFlagFileName = createFileNameComputed('firstMatch', 'leftTeamFlag')
 const firstMatchRightFlagFileName = createFileNameComputed('firstMatch', 'rightTeamFlag')
 
-// Computed file names for secondMatch
 const secondMatchLeftLogoFileName = createFileNameComputed('secondMatch', 'leftTeamLogo')
 const secondMatchRightLogoFileName = createFileNameComputed('secondMatch', 'rightTeamLogo')
 const secondMatchLeftFlagFileName = createFileNameComputed('secondMatch', 'leftTeamFlag')
@@ -130,12 +124,12 @@ onUnmounted(() => {
           <v-card-title class="panel-title">FIRST MATCH</v-card-title>
           <v-text-field
             label="Match Time"
-            :model-value="props.matches.firstMatch.MatchTime"
+            :model-value="props.matches.firstMatch.matchTime"
             type="time"
             hide-details="auto"
             class="custom-text-input"
             flat
-            @update:model-value="updateMatchField('firstMatch', 'MatchTime', $event)"
+            @update:model-value="updateMatchField('firstMatch', 'matchTime', $event)"
           ></v-text-field>
           <v-row no-gutters>
             <v-col cols="6" class="team-section">
@@ -291,12 +285,12 @@ onUnmounted(() => {
           <v-card-title class="panel-title">SECOND MATCH</v-card-title>
           <v-text-field
             label="Match Time"
-            :model-value="props.matches.secondMatch.MatchTime"
+            :model-value="props.matches.secondMatch.matchTime"
             type="time"
             hide-details="auto"
             class="custom-text-input"
             flat
-            @update:model-value="updateMatchField('secondMatch', 'MatchTime', $event)"
+            @update:model-value="updateMatchField('secondMatch', 'matchTime', $event)"
           ></v-text-field>
           <v-row no-gutters>
             <v-col cols="6" class="team-section">
@@ -450,22 +444,18 @@ onUnmounted(() => {
 
 <style scoped>
 .matches-container {
-  /* Assuming this is the main container for the matches page content, acts like a surface */
-
   color: rgb(var(--v-theme-on-surface));
   padding: 8px;
 }
 
 .panel-row {
-  /* This is likely a layout row within matches-container, should be transparent */
-  background-color: transparent; /* Was #1e2a38 */
+  background-color: transparent;
   margin-bottom: 16px;
 }
 
 .info-panel,
 .match-panel {
-  /* These are specific panels within the matches page */
-  background-color: rgb(var(--v-theme-surface)); /* Was #1e2a38 */
+  background-color: rgb(var(--v-theme-surface));
 
   border-radius: 4px;
   padding: 0 8px 8px 8px;
@@ -474,20 +464,20 @@ onUnmounted(() => {
 .panel-title {
   font-size: 16px;
   font-weight: bold;
-  color: rgb(var(--v-theme-on-surface)); /* Was #ffffff */
+  color: rgb(var(--v-theme-on-surface));
   padding: 8px 0;
   text-transform: uppercase;
 }
 
 .team-section {
-  padding: 0 8px; /* Structural, remains as is */
+  padding: 0 8px;
 }
 
 .custom-file-input,
 .custom-text-input {
   border-radius: 4px;
   overflow: hidden;
-  margin-bottom: 8px; /* Structural, remains as is */
+  margin-bottom: 8px;
   width: 100%;
   max-width: 100%;
 }
@@ -496,17 +486,16 @@ onUnmounted(() => {
 .custom-text-input .v-field__overlay,
 .custom-file-input .v-field__field,
 .custom-text-input .v-field__field {
-  background-color: rgb(var(--v-theme-input-background)) !important; /* Was #2c3e50 */
+  background-color: rgb(var(--v-theme-input-background)) !important;
 }
 
 .custom-file-input .v-input__control,
 .custom-text-input .v-input__control {
-  /* .v-input__slot was also targeted, ensure control is sufficient */
-  background-color: rgb(var(--v-theme-input-background)) !important; /* Was #2c3e50 */
-  border: 1px solid rgb(var(--v-theme-input-border)) !important; /* Was #2c3e50, now consistent input-border */
+  background-color: rgb(var(--v-theme-input-background)) !important;
+  border: 1px solid rgb(var(--v-theme-input-border)) !important;
   box-shadow: none !important;
   border-radius: 4px !important;
-  min-height: 40px !important; /* Note: PlayerRow had 48px, this is 40px. Keeping as per original. */
+  min-height: 40px !important;
   padding: 0 12px;
   width: 100%;
   max-width: 100%;
@@ -514,60 +503,55 @@ onUnmounted(() => {
 
 .custom-file-input .v-label,
 .custom-text-input .v-label {
-  color: rgb(var(--v-theme-input-label)) !important; /* Was #ffffff */
-  font-size: 12px !important; /* Note: PlayerRow had 14px. Keeping as per original. */
+  color: rgb(var(--v-theme-input-label)) !important;
+  font-size: 12px !important;
   font-weight: bold;
   opacity: 1 !important;
   transform: translateY(-50%) scale(1) !important;
   top: 50% !important;
   left: 12px !important;
   pointer-events: none;
-  text-transform: uppercase; /* Specific to this component's label style */
+  text-transform: uppercase;
 }
 
 .custom-file-input .v-field__input,
 .custom-text-input .v-field__input {
-  color: rgb(var(--v-theme-input-text)) !important; /* Was #ffffff */
+  color: rgb(var(--v-theme-input-text)) !important;
 }
 
 .custom-file-input .v-field__input::placeholder,
 .custom-text-input .v-field__input::placeholder {
-  color: rgba(
-    var(--v-theme-input-text),
-    0.7
-  ) !important; /* Was #ffffff, now themed and slightly muted */
-  opacity: 1 !important; /* Opacity is handled by rgba now */
+  color: rgba(var(--v-theme-input-text), 0.7) !important;
+  opacity: 1 !important;
 }
 
 .custom-file-input .v-file-input__text {
-  color: rgb(var(--v-theme-input-text)); /* Was #ffffff */
+  color: rgb(var(--v-theme-input-text));
   padding-right: 40px;
 }
 
 .custom-text-input input {
-  color: rgb(var(--v-theme-input-text)); /* Was #ffffff */
+  color: rgb(var(--v-theme-input-text));
   padding-right: 40px;
 }
 .add-button-file {
-  color: rgb(var(--v-theme-primary)) !important; /* Was #00c853 */
+  color: rgb(var(--v-theme-primary)) !important;
   font-weight: bold;
   text-transform: uppercase;
-  font-size: 10px; /* Structural, keeping as is */
-  padding: 0 6px; /* Structural, keeping as is */
+  font-size: 10px;
+  padding: 0 6px;
   min-width: auto;
-  height: 80%; /* Structural, keeping as is */
+  height: 80%;
   border-radius: 0 4px 4px 0;
-  background-color: transparent; /* Was #2c3e50. Consistent with PlayerRow, or use a subtle theme color */
+  background-color: transparent;
   position: absolute;
   right: 0;
-  top: 10%; /* Structural, keeping as is */
+  top: 10%;
 }
 
 .custom-text-input .v-input__append-inner .v-icon,
 .custom-file-input .v-input__append-inner .v-icon {
-  color: rgb(
-    var(--v-theme-input-label)
-  ) !important; /* Was #ffffff. Using input-label for consistency. */
+  color: rgb(var(--v-theme-input-label)) !important;
   font-size: 18px !important;
   margin-right: 8px;
 }

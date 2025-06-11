@@ -13,7 +13,7 @@ const clearMatchesData = () => {
   store.matches = {
     date: '',
     firstMatch: {
-      MatchTime: '',
+      matchTime: '',
       leftTeamName: '',
       rightTeamName: '',
       leftTeamLogo: '',
@@ -22,7 +22,7 @@ const clearMatchesData = () => {
       rightTeamFlag: ''
     },
     secondMatch: {
-      MatchTime: '',
+      matchTime: '',
       leftTeamName: '',
       rightTeamName: '',
       leftTeamLogo: '',

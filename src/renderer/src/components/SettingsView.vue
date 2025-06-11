@@ -86,19 +86,6 @@ onMounted(async () => {
 
   const version = await window.api.getAppVersion()
   appVersion.value = version
-
-  window.api.onUpdateStatus((status, details) => {
-    updateStatus.value = status
-    if (status === 'available' || status === 'not-available' || status === 'downloaded') {
-      updateInfo.value = details
-    }
-    if (status === 'downloading') {
-      downloadProgress.value = details.percent
-    }
-    if (status === 'error') {
-      updateError.value = details
-    }
-  })
 })
 </script>
 

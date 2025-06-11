@@ -10,29 +10,27 @@ const props = defineProps({
   }
 })
 
-// Initialize refs with prop values
-const imageFilePath = ref(props.team.TeamImage || '')
-const flagFilePath = ref(props.team.FlagImage || '')
+const imageFilePath = ref(props.team.teamImage || '')
+const flagFilePath = ref(props.team.flagImage || '')
 
-// Open Electron file dialog to select an image
 const selectImageFile = async (type) => {
   const result = await window.api.openFileDialog(type)
-  if (!result) return // User canceled the dialog
+  if (!result) return
 
   const { path } = result
 
   if (type === 'image') {
-    imageFilePath.value = path // Store full path
+    imageFilePath.value = path
     const updatedTeam = {
       ...props.team,
-      TeamImage: path // Store the full path
+      teamImage: path
     }
     emit('update-team', updatedTeam)
   } else if (type === 'flag') {
-    flagFilePath.value = path // Store full path
+    flagFilePath.value = path
     const updatedTeam = {
       ...props.team,
-      FlagImage: path // Store the full path
+      flagImage: path
     }
     emit('update-team', updatedTeam)
   }
@@ -42,7 +40,7 @@ const handleClearImage = () => {
   imageFilePath.value = ''
   const updatedTeam = {
     ...props.team,
-    TeamImage: null
+    TeamImage: ''
   }
   emit('update-team', updatedTeam)
 }
@@ -51,7 +49,7 @@ const handleClearFlag = () => {
   flagFilePath.value = ''
   const updatedTeam = {
     ...props.team,
-    FlagImage: null
+    FlagImage: ''
   }
   emit('update-team', updatedTeam)
 }
@@ -59,7 +57,7 @@ const handleClearFlag = () => {
 const handleNameChange = (value) => {
   const updatedTeam = {
     ...props.team,
-    TeamName: value
+    teamName: value
   }
   emit('update-team', updatedTeam)
 }
@@ -67,17 +65,16 @@ const handleNameChange = (value) => {
 const handleScoreChange = (value) => {
   const updatedTeam = {
     ...props.team,
-    Score: Number(value)
+    score: Number(value)
   }
   emit('update-team', updatedTeam)
 }
 
-// Watch props.team to sync image paths
 watch(
   () => props.team,
   (newTeam) => {
-    imageFilePath.value = newTeam.TeamImage || ''
-    flagFilePath.value = newTeam.FlagImage || ''
+    imageFilePath.value = newTeam.teamImage || ''
+    flagFilePath.value = newTeam.flagImage || ''
   },
   { deep: true }
 )
@@ -155,7 +152,7 @@ watch(
       <v-col cols="3" class="pa-1">
         <v-text-field
           label="Team Name"
-          :model-value="props.team.TeamName"
+          :model-value="props.team.teamName"
           hide-details="auto"
           class="custom-text-input"
           append-inner-icon="mdi-pencil"
@@ -166,7 +163,7 @@ watch(
       <v-col cols="3" class="pa-1">
         <v-text-field
           label="Score"
-          :model-value="props.team.Score"
+          :model-value="props.team.score"
           type="number"
           min="0"
           hide-details="auto"
@@ -182,9 +179,9 @@ watch(
 
 <style scoped>
 .team-row-container {
-  background-color: rgb(var(--v-theme-surface)); /* Changed from #1e2a38 */
-  color: rgb(var(--v-theme-on-surface)); /* Changed from #ffffff */
-  border-bottom: 1px solid rgb(var(--v-theme-input-border)); /* Changed from #2c3e50 */
+  background-color: rgb(var(--v-theme-surface));
+  color: rgb(var(--v-theme-on-surface));
+  border-bottom: 1px solid rgb(var(--v-theme-input-border));
   margin-bottom: 8px;
   border-radius: 4px;
 }
@@ -197,32 +194,32 @@ watch(
 .custom-text-input {
   border-radius: 4px;
   overflow: hidden;
-  width: 100%; /* Added for consistency */
-  max-width: 100%; /* Added for consistency */
+  width: 100%;
+  max-width: 100%;
 }
 
 .custom-file-input .v-field__overlay,
 .custom-text-input .v-field__overlay,
 .custom-file-input .v-field__field,
 .custom-text-input .v-field__field {
-  background-color: rgb(var(--v-theme-input-background)) !important; /* Changed from #2c3e50 */
+  background-color: rgb(var(--v-theme-input-background)) !important;
 }
 
 .custom-file-input .v-input__control,
 .custom-text-input .v-input__control {
-  background-color: rgb(var(--v-theme-input-background)) !important; /* Changed from #2c3e50 */
-  border: 1px solid rgb(var(--v-theme-input-border)) !important; /* Changed from rgba(255, 255, 255, 0.2) */
+  background-color: rgb(var(--v-theme-input-background)) !important;
+  border: 1px solid rgb(var(--v-theme-input-border)) !important;
   box-shadow: none !important;
   border-radius: 4px !important;
   min-height: 48px !important;
   padding: 0 12px;
-  width: 100%; /* Added for consistency */
-  max-width: 100%; /* Added for consistency */
+  width: 100%;
+  max-width: 100%;
 }
 
 .custom-file-input .v-label,
 .custom-text-input .v-label {
-  color: rgb(var(--v-theme-input-label)) !important; /* Changed from #ffffff */
+  color: rgb(var(--v-theme-input-label)) !important;
   font-size: 14px !important;
   font-weight: bold;
   opacity: 1 !important;
@@ -234,27 +231,27 @@ watch(
 
 .custom-file-input .v-field__input,
 .custom-text-input .v-field__input {
-  color: rgb(var(--v-theme-input-text)) !important; /* Changed from #ffffff */
+  color: rgb(var(--v-theme-input-text)) !important;
 }
 
 .custom-file-input .v-field__input::placeholder,
 .custom-text-input .v-field__input::placeholder {
-  color: rgba(var(--v-theme-input-text), 0.7) !important; /* Changed from #ffffff */
+  color: rgba(var(--v-theme-input-text), 0.7) !important;
   opacity: 1 !important;
 }
 
 .custom-file-input .v-file-input__text {
-  color: rgb(var(--v-theme-input-text)); /* Changed from #ffffff */
+  color: rgb(var(--v-theme-input-text));
   padding-right: 50px;
 }
 
 .custom-text-input input {
-  color: rgb(var(--v-theme-input-text)); /* Changed from #ffffff */
+  color: rgb(var(--v-theme-input-text));
   padding-right: 40px;
 }
 
 .add-button-file {
-  color: rgb(var(--v-theme-primary)) !important; /* Changed from #00c853 */
+  color: rgb(var(--v-theme-primary)) !important;
   font-weight: bold;
   text-transform: uppercase;
   font-size: 12px;
@@ -262,11 +259,11 @@ watch(
   min-width: auto;
   height: 100%;
   border-radius: 0 4px 4px 0;
-  background-color: transparent; /* Changed from #2c3e50 */
+  background-color: transparent;
   position: absolute;
   right: 0;
   top: 0;
-  transition: all 0.1s ease; /* Added for consistency */
+  transition: all 0.1s ease;
 }
 
 .clear-button {
@@ -278,11 +275,10 @@ watch(
 
 .custom-text-input .v-input__append-inner .v-icon,
 .custom-file-input .v-input__append-inner .v-icon {
-  /* Added custom-file-input selector for consistency */
-  color: rgb(var(--v-theme-input-label)) !important; /* Changed from #ffffff */
+  color: rgb(var(--v-theme-input-label)) !important;
   font-size: 18px !important;
   margin-right: 8px;
-  transition: all 0.1s ease; /* Added for consistency */
+  transition: all 0.1s ease;
 }
 
 .custom-file-input .v-input__prepend-inner,

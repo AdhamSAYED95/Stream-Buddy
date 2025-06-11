@@ -10,7 +10,7 @@ const props = defineProps({
   }
 })
 
-const heroFilePath = ref(props.player.HeroImage || '')
+const heroFilePath = ref(props.player.heroImage || '')
 
 const selectImageFile = async (type) => {
   const result = await window.api.openFileDialog(type)
@@ -22,7 +22,7 @@ const selectImageFile = async (type) => {
     heroFilePath.value = path
     const updatedPlayer = {
       ...props.player,
-      HeroImage: path
+      heroImage: path
     }
     emit('update-player', updatedPlayer)
   }
@@ -32,7 +32,7 @@ const handleClearHeroImage = () => {
   heroFilePath.value = ''
   const updatedPlayer = {
     ...props.player,
-    HeroImage: null
+    heroImage: ''
   }
   emit('update-player', updatedPlayer)
 }
@@ -40,7 +40,7 @@ const handleClearHeroImage = () => {
 watch(
   () => props.player,
   (newPlayer) => {
-    heroFilePath.value = newPlayer.HeroImage || ''
+    heroFilePath.value = newPlayer.heroImage || ''
   },
   { deep: true }
 )
@@ -54,49 +54,49 @@ watch(
           <v-col cols="12" class="pa-1 input-spacing">
             <v-text-field
               label="Player Name"
-              :model-value="props.player.PlayerName"
+              :model-value="props.player.playerName"
               type="text"
               hide-details="auto"
               class="custom-text-input"
               append-inner-icon="mdi-pencil"
               flat
               @update:model-value="
-                (value) => emit('update-player', { ...props.player, PlayerName: value })
+                (value) => emit('update-player', { ...props.player, playerName: value })
               "
             ></v-text-field>
           </v-col>
           <v-col cols="12" class="pa-1 input-spacing">
             <v-text-field
               label="Team Name"
-              :model-value="props.player.TeamName"
+              :model-value="props.player.teamName"
               type="text"
               hide-details="auto"
               class="custom-text-input"
               append-inner-icon="mdi-pencil"
               flat
               @update:model-value="
-                (value) => emit('update-player', { ...props.player, TeamName: value })
+                (value) => emit('update-player', { ...props.player, teamName: value })
               "
             ></v-text-field>
           </v-col>
           <v-col cols="12" class="pa-1 input-spacing">
             <v-text-field
               label="Favorite Weapon"
-              :model-value="props.player.FavouriteWeapon"
+              :model-value="props.player.favouriteWeapon"
               append-inner-icon="mdi-pencil"
               type="text"
               hide-details="auto"
               class="custom-text-input"
               flat
               @update:model-value="
-                (value) => emit('update-player', { ...props.player, FavouriteWeapon: value })
+                (value) => emit('update-player', { ...props.player, favouriteWeapon: value })
               "
             ></v-text-field>
           </v-col>
           <v-col cols="12" class="pa-1 input-spacing">
             <v-text-field
               label="Economy Score"
-              :model-value="props.player.EconomyScore"
+              :model-value="props.player.economyScore"
               type="number"
               min="0"
               hide-details="auto"
@@ -104,7 +104,7 @@ watch(
               append-inner-icon="mdi-pencil"
               flat
               @update:model-value="
-                (value) => emit('update-player', { ...props.player, EconomyScore: Number(value) })
+                (value) => emit('update-player', { ...props.player, economyScore: Number(value) })
               "
             ></v-text-field>
           </v-col>
@@ -144,7 +144,7 @@ watch(
           <v-col cols="12" class="pa-1 input-spacing">
             <v-text-field
               label="Kills"
-              :model-value="props.player.Kills"
+              :model-value="props.player.kills"
               type="number"
               min="0"
               hide-details="auto"
@@ -152,14 +152,14 @@ watch(
               append-inner-icon="mdi-pencil"
               flat
               @update:model-value="
-                (value) => emit('update-player', { ...props.player, Kills: Number(value) })
+                (value) => emit('update-player', { ...props.player, kills: Number(value) })
               "
             ></v-text-field>
           </v-col>
           <v-col cols="12" class="pa-1 input-spacing">
             <v-text-field
               label="Deaths"
-              :model-value="props.player.Deaths"
+              :model-value="props.player.deaths"
               type="number"
               min="0"
               hide-details="auto"
@@ -167,14 +167,14 @@ watch(
               append-inner-icon="mdi-pencil"
               flat
               @update:model-value="
-                (value) => emit('update-player', { ...props.player, Deaths: Number(value) })
+                (value) => emit('update-player', { ...props.player, deaths: Number(value) })
               "
             ></v-text-field>
           </v-col>
           <v-col cols="12" class="pa-1 input-spacing">
             <v-text-field
               label="Assists"
-              :model-value="props.player.Assists"
+              :model-value="props.player.assists"
               type="number"
               min="0"
               hide-details="auto"
@@ -182,7 +182,7 @@ watch(
               append-inner-icon="mdi-pencil"
               flat
               @update:model-value="
-                (value) => emit('update-player', { ...props.player, Assists: Number(value) })
+                (value) => emit('update-player', { ...props.player, assists: Number(value) })
               "
             ></v-text-field>
           </v-col>
