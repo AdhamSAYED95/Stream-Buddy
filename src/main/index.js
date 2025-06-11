@@ -138,8 +138,7 @@ autoUpdater.on('checking-for-update', () => {
 })
 
 autoUpdater.on('update-available', (info) => {
-  // Instead of just sending to renderer, show a dialog first
-  mainWindow.webContents.send('update-status', 'available', info) // Still send to update the UI
+  mainWindow.webContents.send('update-status', 'available', info)
   log.info(`Update available: ${info.version}`)
 
   dialog
