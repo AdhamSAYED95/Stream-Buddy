@@ -92,7 +92,7 @@ onMounted(async () => {
 <template>
   <div class="settings-view">
     <div class="fixed-header">
-      <h1>Title</h1>
+      <h1>Settings</h1>
     </div>
     <div class="content">
       <v-container>
