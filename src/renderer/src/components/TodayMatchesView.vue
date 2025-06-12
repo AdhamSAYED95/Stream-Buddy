@@ -50,7 +50,7 @@ const createMatchsJson = async () => {
     <div class="fixed-header">
       <h1>Today's Matches</h1>
       <v-btn color="primary" class="mb-4 mr-16" @click="createMatchsJson"
-        >Create All Matches's file</v-btn
+        >Create Today's Matches's file</v-btn
       >
       <v-btn color="red" class="mb-4" @click="clearMatchesData">Clear Matches Data</v-btn>
     </div>

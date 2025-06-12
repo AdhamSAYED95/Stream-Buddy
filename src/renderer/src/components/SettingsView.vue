@@ -11,10 +11,8 @@ const isDarkMode = ref(theme.global.name.value === 'dark')
 const isNavigationMini = ref(true)
 const jsonSavePath = ref('')
 const appVersion = ref('')
-const updateStatus = ref('idle')
-const updateInfo = ref(null)
-const downloadProgress = ref(0)
-const updateError = ref(null)
+const updateStatus = ref('')
+const releaseInfo = ref(null)
 
 function toggleTheme(value) {
   const newThemeName = value ? 'dark' : 'light'
@@ -57,6 +55,12 @@ const clearAllInputData = () => {
   store.clearAllData()
 }
 
+const checkForUpdates = () => {
+  updateStatus.value = ''
+  releaseInfo.value = null
+  window.api.checkForUpdates()
+}
+
 watch(
   () => theme.global.name.value,
   (newName) => {
@@ -86,6 +90,13 @@ onMounted(async () => {
 
   const version = await window.api.getAppVersion()
   appVersion.value = version
+
+  window.api.onUpdateStatus((status, info) => {
+    updateStatus.value = status
+    if (info) {
+      releaseInfo.value = info
+    }
+  })
 })
 </script>
 
@@ -180,6 +191,35 @@ onMounted(async () => {
               <v-divider class="my-2"></v-divider>
               <v-card-text>
                 <p class="mb-3">Current Version: {{ appVersion }}</p>
+                <v-btn color="info" @click="checkForUpdates">Check for Updates</v-btn>
+                <div v-if="updateStatus" class="mt-4">
+                  <v-alert v-if="updateStatus === 'checking'" type="info" dense>
+                    Checking for updates...
+                  </v-alert>
+                  <v-alert v-if="updateStatus === 'available'" type="success" dense>
+                    A new version is available: {{ releaseInfo.version }}
+                    <div v-if="releaseInfo.releaseNotes" class="release-notes-content mt-2">
+                      <p><strong>Release Notes:</strong></p>
+                      <div v-html="releaseInfo.releaseNotes"></div>
+                    </div>
+                  </v-alert>
+                  <v-alert v-if="updateStatus === 'not-available'" type="info" dense>
+                    You are on the latest version.
+                  </v-alert>
+                  <v-alert v-if="updateStatus === 'downloading'" type="info" dense>
+                    Downloading update... {{ releaseInfo.percent.toFixed(2) }}%
+                    <v-progress-linear
+                      :model-value="releaseInfo.percent"
+                      class="mt-2"
+                    ></v-progress-linear>
+                  </v-alert>
+                  <v-alert v-if="updateStatus === 'downloaded'" type="success" dense>
+                    Update downloaded. It will be installed on restart.
+                  </v-alert>
+                  <v-alert v-if="updateStatus === 'error'" type="error" dense>
+                    An error occurred while checking for updates.
+                  </v-alert>
+                </div>
               </v-card-text>
             </v-card>
           </v-col>

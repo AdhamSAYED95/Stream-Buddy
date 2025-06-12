@@ -23,6 +23,7 @@ process.on('unhandledRejection', (reason, promise) => {
 autoUpdater.autoDownload = false
 
 let updateTriggeredByAutoCheck = false
+let updateTriggeredByUser = false
 
 let mainWindow = null
 
@@ -59,7 +60,6 @@ function createWindow() {
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
     if (mainWindow && mainWindow.webContents) {
-      // Check if mainWindow and webContents exist
       mainWindow.webContents.openDevTools({ mode: 'bottom', activate: true })
     }
   } else {
@@ -131,6 +131,11 @@ ipcMain.on('log-renderer-rejection', (_, rejection) => {
   log.error('Renderer Promise Rejection:', rejection)
 })
 
+ipcMain.handle('check-for-updates', () => {
+  updateTriggeredByUser = true
+  autoUpdater.checkForUpdates()
+})
+
 autoUpdater.on('checking-for-update', () => {
   mainWindow.webContents.send('update-status', 'checking')
 })
@@ -139,27 +144,29 @@ autoUpdater.on('update-available', (info) => {
   mainWindow.webContents.send('update-status', 'available', info)
   log.info(`Update available: ${info.version}`)
 
-  dialog
-    .showMessageBox(mainWindow, {
-      type: 'info',
-      title: 'Update Available',
-      message: `A new version ${info.version} is available.`,
-      detail: info.releaseNotes
-        ? `What's New:\n\n${info.releaseNotes}`
-        : 'No release notes provided.',
-      buttons: ['Update Now', 'Later'],
-      defaultId: 0,
-      cancelId: 1
-    })
-    .then((response) => {
-      if (response.response === 0) {
-        log.info('User chose to update now, starting download...')
-        autoUpdater.downloadUpdate()
-      }
-    })
-    .catch((err) => {
-      log.error('Error showing update dialog:', err)
-    })
+  if (updateTriggeredByAutoCheck) {
+    dialog
+      .showMessageBox(mainWindow, {
+        type: 'info',
+        title: 'Update Available',
+        message: `A new version ${info.version} is available.`,
+        detail: info.releaseNotes
+          ? `What's New:\n\n${info.releaseNotes}`
+          : 'No release notes provided.',
+        buttons: ['Update Now', 'Later'],
+        defaultId: 0,
+        cancelId: 1
+      })
+      .then((response) => {
+        if (response.response === 0) {
+          log.info('User chose to update now, starting download...')
+          autoUpdater.downloadUpdate()
+        }
+      })
+      .catch((err) => {
+        log.error('Error showing update dialog:', err)
+      })
+  }
 })
 
 autoUpdater.on('update-not-available', (info) => {
@@ -176,7 +183,23 @@ autoUpdater.on('download-progress', (progressObj) => {
 
 autoUpdater.on('update-downloaded', (info) => {
   mainWindow.webContents.send('update-status', 'downloaded', info)
-  if (updateTriggeredByAutoCheck) {
+  if (updateTriggeredByUser) {
+    dialog
+      .showMessageBox(mainWindow, {
+        type: 'info',
+        title: 'Update Ready',
+        message: 'The new version has been downloaded.',
+        detail: 'Restart the application to apply the updates.',
+        buttons: ['Restart Now', 'Later'],
+        defaultId: 0,
+        cancelId: 1
+      })
+      .then((response) => {
+        if (response.response === 0) {
+          autoUpdater.quitAndInstall()
+        }
+      })
+  } else if (updateTriggeredByAutoCheck) {
     log.info('Auto-update downloaded. Quitting and installing...')
     autoUpdater.quitAndInstall()
   }

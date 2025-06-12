@@ -39,7 +39,7 @@ const createPlayerJson = async () => {
     <div class="fixed-header">
       <h1>Players Stats</h1>
       <v-btn color="primary" class="mb-4 mr-16" @click="createPlayerJson"
-        >Create Player's file</v-btn
+        >Create Player's Stats file</v-btn
       >
       <v-btn color="red" class="mb-4" @click="clearPlayerData">Clear Player Data</v-btn>
     </div>
