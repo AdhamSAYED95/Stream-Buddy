@@ -1,7 +1,11 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import TeamRow from './TeamRow.vue'
 import { useAppStateStore } from '../store/appState'
+
+const showSuccess = ref(false)
+const showError = ref(false)
+const errorMsg = ref('')
 
 const store = useAppStateStore()
 const teams = computed({
@@ -33,9 +37,17 @@ const createBracketsJson = async () => {
   const defaultPath = await window.api.getDefaultPath()
   const savePath = localStorage.getItem('json-save-path') || defaultPath
   try {
-    await window.api.createFile(`${savePath}/ViewData/BracketsView.json`, jsonData)
-  } catch (error) {
-    console.error('Failed to create BracketsView.json:', error)
+    const created = await window.api.createFile(`${savePath}/ViewData/BracketsView.json`, jsonData)
+    if (created) {
+      showSuccess.value = true
+    } else {
+      errorMsg.value = 'Could not write file'
+      showError.value = true
+    }
+  } catch (e) {
+    errorMsg.value = e.message || 'Unknown error'
+    showError.value = true
+    console.error('Failed to create BracketsView.json:', e)
   }
 }
 
@@ -75,6 +87,15 @@ function initializeTeams() {
         :team="team"
         @update-team="updateTeam"
       />
+      <v-snackbar v-model="showSuccess" :timeout="4000" top color="success">
+        Brackets File created successfully!
+      </v-snackbar>
+      <v-snackbar v-model="showError" :timeout="5000" top color="error">
+        {{ errorMsg }}
+        <template #action="{ attrs }">
+          <v-btn text v-bind="attrs" @click="showError = false"> Close </v-btn>
+        </template>
+      </v-snackbar>
     </div>
   </div>
 </template>

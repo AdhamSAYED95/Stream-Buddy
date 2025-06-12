@@ -112,6 +112,7 @@ onUnmounted(() => {
             hide-details="auto"
             class="custom-text-input"
             flat
+            max="9999-12-31"
             @update:model-value="emit('update:matches', { ...props.matches, date: $event })"
           ></v-text-field>
         </v-card>

@@ -40,7 +40,7 @@ const handleClearImage = () => {
   imageFilePath.value = ''
   const updatedTeam = {
     ...props.team,
-    TeamImage: ''
+    teamImage: ''
   }
   emit('update-team', updatedTeam)
 }
@@ -49,7 +49,7 @@ const handleClearFlag = () => {
   flagFilePath.value = ''
   const updatedTeam = {
     ...props.team,
-    FlagImage: ''
+    flagImage: ''
   }
   emit('update-team', updatedTeam)
 }
