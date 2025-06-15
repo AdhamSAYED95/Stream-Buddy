@@ -1,11 +1,13 @@
 <script setup>
-import { onMounted } from 'vue'
+import { onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useTheme } from 'vuetify'
+import { useAppStateStore, allNavigableViews } from './store/appState' // Adjust import based on your file structure
 import NavigationPanel from './components/NavigationPanel.vue'
-const router = useRouter()
 
+const router = useRouter()
 const theme = useTheme()
+const store = useAppStateStore() // Renamed to avoid confusion with Pinia store
 
 window.addEventListener('error', (event) => {
   if (window.electronLogger) {
@@ -38,10 +40,15 @@ onMounted(() => {
     router.replace(lastRoute)
   }
 
-  const savedTheme = localStorage.getItem('user-theme')
-  if (savedTheme) {
-    theme.global.name.value = savedTheme
-  }
+  store.initializeViewVisibility(allNavigableViews)
+
+  watch(
+    () => store.isDarkMode,
+    (newValue) => {
+      theme.global.name.value = newValue ? 'dark' : 'light'
+    },
+    { immediate: true }
+  )
 })
 </script>
 

@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 import PlayerRow from './PlayerRow.vue'
 import { useAppStateStore } from '../store/appState'
 
@@ -8,10 +8,6 @@ const showError = ref(false)
 const errorMsg = ref('')
 
 const store = useAppStateStore()
-const players = computed({
-  get: () => store.players,
-  set: (value) => (store.players = value)
-})
 
 const clearPlayerData = () => {
   store.players = {
@@ -26,17 +22,11 @@ const clearPlayerData = () => {
   }
 }
 
-const updatePlayer = (updatedPlayer) => {
-  store.players = { ...store.players, ...updatedPlayer }
-}
-
 const createPlayerJson = async () => {
   const jsonData = JSON.stringify(store.players, null, 2)
-  const defaultPath = await window.api.getDefaultPath()
-  const savePath = localStorage.getItem('json-save-path') || defaultPath
 
   try {
-    const created = await window.api.createFile(`${savePath}/ViewData/PlayersStats.json`, jsonData)
+    const created = await window.api.createFile(`${store.jsonSavePath}/PlayersStats.json`, jsonData)
     if (created) {
       showSuccess.value = true
     } else {
@@ -61,7 +51,7 @@ const createPlayerJson = async () => {
       <v-btn color="red" class="mb-4" @click="clearPlayerData">Clear Player Data</v-btn>
     </div>
     <div class="content">
-      <PlayerRow :player="players" @update-player="updatePlayer" />
+      <PlayerRow />
       <v-snackbar v-model="showSuccess" :timeout="4000" top color="success">
         Player's Stats File created successfully!
       </v-snackbar>

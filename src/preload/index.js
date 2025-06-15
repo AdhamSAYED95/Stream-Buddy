@@ -13,6 +13,7 @@ const api = {
   getDefaultPath: () => ipcRenderer.invoke('get-default-path'),
   getAppVersion: () => ipcRenderer.invoke('app-version'),
   checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
+  downloadUpdate: () => ipcRenderer.send('download-update'),
   onUpdateStatus: (callback) =>
     ipcRenderer.on('update-status', (_event, ...args) => callback(...args))
 }

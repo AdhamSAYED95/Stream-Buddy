@@ -43,10 +43,11 @@ const updateMatches = (updatedMatches) => {
 
 const createMatchsJson = async () => {
   const jsonData = JSON.stringify(store.matches, null, 2)
-  const defaultPath = await window.api.getDefaultPath()
-  const savePath = localStorage.getItem('json-save-path') || defaultPath
   try {
-    const created = await window.api.createFile(`${savePath}/ViewData/todaysmatches.json`, jsonData)
+    const created = await window.api.createFile(
+      `${store.jsonSavePath}/todaysmatches.json`,
+      jsonData
+    )
 
     if (created) {
       showSuccess.value = true

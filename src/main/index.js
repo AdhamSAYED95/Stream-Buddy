@@ -132,16 +132,22 @@ ipcMain.on('log-renderer-rejection', (_, rejection) => {
 })
 
 ipcMain.handle('check-for-updates', () => {
+  updateTriggeredByAutoCheck = false
   updateTriggeredByUser = true
   autoUpdater.checkForUpdates()
 })
 
+ipcMain.on('download-update', () => {
+  autoUpdater.downloadUpdate()
+})
+
 autoUpdater.on('checking-for-update', () => {
-  mainWindow.webContents.send('update-status', 'checking')
+  if (updateTriggeredByUser) {
+    mainWindow.webContents.send('update-status', 'checking')
+  }
 })
 
 autoUpdater.on('update-available', (info) => {
-  mainWindow.webContents.send('update-status', 'available', info)
   log.info(`Update available: ${info.version}`)
 
   if (updateTriggeredByAutoCheck) {
@@ -163,27 +169,32 @@ autoUpdater.on('update-available', (info) => {
           autoUpdater.downloadUpdate()
         }
       })
-      .catch((err) => {
-        log.error('Error showing update dialog:', err)
-      })
+  } else if (updateTriggeredByUser) {
+    mainWindow.webContents.send('update-status', 'available', info)
   }
 })
 
 autoUpdater.on('update-not-available', (info) => {
-  mainWindow.webContents.send('update-status', 'not-available', info)
+  if (updateTriggeredByUser) {
+    mainWindow.webContents.send('update-status', 'not-available', info)
+  }
 })
 
 autoUpdater.on('error', (err) => {
-  mainWindow.webContents.send('update-status', 'error', err)
+  if (updateTriggeredByUser) {
+    mainWindow.webContents.send('update-status', 'error', err)
+  }
 })
 
 autoUpdater.on('download-progress', (progressObj) => {
-  mainWindow.webContents.send('update-status', 'downloading', progressObj)
+  if (updateTriggeredByUser) {
+    mainWindow.webContents.send('update-status', 'downloading', progressObj)
+  }
 })
 
 autoUpdater.on('update-downloaded', (info) => {
-  mainWindow.webContents.send('update-status', 'downloaded', info)
   if (updateTriggeredByUser) {
+    mainWindow.webContents.send('update-status', 'downloaded', info)
     dialog
       .showMessageBox(mainWindow, {
         type: 'info',

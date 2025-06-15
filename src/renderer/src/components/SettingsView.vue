@@ -1,101 +1,93 @@
 <script setup>
-import { ref, watch, onMounted } from 'vue'
-import { useTheme } from 'vuetify'
-import { useAppStateStore } from '../store/appState'
+import { onMounted, ref } from 'vue'
 
-const theme = useTheme()
+import { useAppStateStore, allNavigableViews } from '../store/appState'
+
 const store = useAppStateStore()
-const emit = defineEmits(['update:navigationMode'])
+const createPresetDialog = ref(false)
+const newPresetName = ref('')
+const updatePresetDialog = ref(false)
+const presetToUpdateName = ref('')
+const showSnackbar = ref(false)
+const snackbarText = ref('')
+const snackbarColor = ref('success')
 
-const isDarkMode = ref(theme.global.name.value === 'dark')
-const isNavigationMini = ref(true)
-const jsonSavePath = ref('')
-const appVersion = ref('')
-const updateStatus = ref('')
-const releaseInfo = ref(null)
+const presetNameRules = [
+  (v) => !!v || 'Preset name is required',
+  (v) => (v && v.length <= 50) || 'Name must be less than 50 characters',
+  (v) => !Object.keys(store.viewPresets).includes(v) || 'Preset with this name already exists'
+]
 
-function toggleTheme(value) {
-  const newThemeName = value ? 'dark' : 'light'
-  theme.global.name.value = newThemeName
-  localStorage.setItem('user-theme', newThemeName)
-  isDarkMode.value = value
+const openCreatePresetDialog = () => {
+  newPresetName.value = ''
+  createPresetDialog.value = true
 }
 
-function toggleNavigationMode(value) {
-  isNavigationMini.value = value
-  const mode = value ? 'mini' : 'full'
-  localStorage.setItem('navigation-mode', mode)
-  emit('update:navigationMode', mode)
+const saveNewPreset = () => {
+  if (!newPresetName.value || newPresetName.value.trim() === '') {
+    showFeedback('Preset name cannot be empty.', 'error')
+    return
+  }
+  if (Object.keys(store.viewPresets).includes(newPresetName.value.trim())) {
+    showFeedback('A preset with this name already exists. Please choose a different name.', 'error')
+    return
+  }
+
+  store.saveViewPreset(newPresetName.value.trim())
+  showFeedback(`Preset '${newPresetName.value.trim()}' saved successfully!`, 'success')
+  createPresetDialog.value = false
+  newPresetName.value = ''
 }
 
-const selectJsonSavePath = async () => {
-  const selectedPath = await window.api.selectDirectory()
-  if (selectedPath) {
-    jsonSavePath.value = `${selectedPath}\\ViewData`
-    localStorage.setItem('json-save-path', selectedPath)
+const applyPreset = (presetName) => {
+  store.applyViewPreset(presetName)
+  store.selectedPreset = presetName
+  if (store.selectedPreset !== null) showFeedback(`Preset '${presetName}' applied!`, 'info')
+}
+
+const openUpdatePresetDialog = (presetName) => {
+  presetToUpdateName.value = presetName
+  updatePresetDialog.value = true
+}
+
+const updatePreset = () => {
+  if (presetToUpdateName.value) {
+    store.updateViewPreset(presetToUpdateName.value)
+    showFeedback(`Preset '${presetToUpdateName.value}' updated!`, 'success')
+    updatePresetDialog.value = false
   }
 }
 
-const resetSettings = async () => {
-  theme.global.name.value = 'light'
-  localStorage.removeItem('user-theme')
-  isDarkMode.value = false
-
-  isNavigationMini.value = true
-  const defaultMode = 'mini'
-  localStorage.removeItem('navigation-mode')
-  emit('update:navigationMode', defaultMode)
-
-  const defaultPath = await window.api.getDefaultPath()
-  jsonSavePath.value = `${defaultPath}\\ViewData`
-  localStorage.removeItem('json-save-path')
+const deletePreset = (presetName) => {
+  store.deleteViewPreset(presetName)
+  if (store.selectedPreset === presetName) {
+    store.selectedPreset = null
+  }
+  showFeedback(`Preset '${presetName}' deleted!`, 'success')
 }
 
-const clearAllInputData = () => {
-  store.clearAllData()
+const showFeedback = (text, color) => {
+  snackbarText.value = text
+  snackbarColor.value = color
+  showSnackbar.value = true
 }
-
 const checkForUpdates = () => {
-  updateStatus.value = ''
-  releaseInfo.value = null
-  window.api.checkForUpdates()
+  store.checkForUpdates()
 }
 
-watch(
-  () => theme.global.name.value,
-  (newName) => {
-    const newIsDark = newName === 'dark'
-    if (isDarkMode.value !== newIsDark) {
-      isDarkMode.value = newIsDark
-    }
-  }
-)
+const downloadUpdate = () => {
+  store.downloadUpdate()
+}
 
 onMounted(async () => {
-  // Load theme
-  isDarkMode.value = theme.global.name.value === 'dark'
+  store.resetUpdateState()
 
-  const savedJsonPath = localStorage.getItem('json-save-path')
-  if (savedJsonPath) {
-    jsonSavePath.value = `${savedJsonPath}\\ViewData`
-  } else {
-    const defaultPath = await window.api.getDefaultPath()
-    jsonSavePath.value = `${defaultPath}\\ViewData`
-  }
+  await store.initializeJsonSavePath()
 
-  const savedNavMode = localStorage.getItem('navigation-mode')
-  if (savedNavMode) {
-    isNavigationMini.value = savedNavMode === 'mini'
-  }
-
-  const version = await window.api.getAppVersion()
-  appVersion.value = version
+  await store.getAppVersion()
 
   window.api.onUpdateStatus((status, info) => {
-    updateStatus.value = status
-    if (info) {
-      releaseInfo.value = info
-    }
+    store.setUpdateStatus(status, info)
   })
 })
 </script>
@@ -115,13 +107,13 @@ onMounted(async () => {
               <v-divider class="my-2"></v-divider>
               <v-card-text>
                 <v-switch
-                  v-model="isDarkMode"
+                  v-model="store.isDarkMode"
                   prepend-icon="mdi-theme-light-dark"
-                  :label="isDarkMode ? 'Dark Mode Active' : 'Light Mode Active'"
+                  :label="store.isDarkMode ? 'Dark Mode Active' : 'Light Mode Active'"
                   color="primary"
                   inset
                   hide-details
-                  @update:model-value="toggleTheme"
+                  @update:model-value="store.toggleTheme"
                 ></v-switch>
               </v-card-text>
             </v-card>
@@ -135,13 +127,13 @@ onMounted(async () => {
               <v-divider class="my-2"></v-divider>
               <v-card-text>
                 <v-switch
-                  v-model="isNavigationMini"
+                  v-model="store.isNavigationMini"
                   prepend-icon="mdi-dock-left"
-                  :label="isNavigationMini ? 'Mini Drawer Active' : 'Full Drawer Active'"
+                  :label="store.isNavigationMini ? 'Mini Drawer Active' : 'Full Drawer Active'"
                   color="primary"
                   inset
                   hide-details
-                  @update:modelValue="toggleNavigationMode"
+                  @update:model-value="store.toggleNavigationMode"
                 ></v-switch>
               </v-card-text>
             </v-card>
@@ -150,15 +142,139 @@ onMounted(async () => {
         <v-row>
           <v-col cols="12">
             <v-card class="setting-card">
-              <v-card-title>Clear Input</v-card-title>
-              <v-card-subtitle>Clear all input data from all views.</v-card-subtitle>
+              <v-card-title>Manage Views</v-card-title>
+              <v-card-subtitle>Control which navigation links are visible.</v-card-subtitle>
               <v-divider class="my-2"></v-divider>
               <v-card-text>
-                <v-btn color="red" @click="clearAllInputData">Clear All Input Data</v-btn>
+                <div v-for="view in allNavigableViews" :key="view.name" class="mb-2">
+                  <v-switch
+                    v-model="store.viewVisibility[view.name]"
+                    :prepend-icon="view.icon"
+                    :label="`${view.title} (${store.viewVisibility[view.name] ? 'Visible' : 'Hidden'})`"
+                    color="primary"
+                    inset
+                    hide-details
+                    @update:model-value="(newValue) => store.setViewVisibility(view.name, newValue)"
+                  ></v-switch>
+                </div>
               </v-card-text>
             </v-card>
           </v-col>
         </v-row>
+
+        <v-row>
+          <v-col cols="12">
+            <v-card class="setting-card">
+              <v-card-title>View Presets</v-card-title>
+              <v-card-subtitle>Save and load combinations of visible views.</v-card-subtitle>
+              <v-divider class="my-2"></v-divider>
+              <v-card-text>
+                <v-btn color="primary" class="mb-4" @click="openCreatePresetDialog">
+                  Create New Preset
+                </v-btn>
+
+                <!-- Presets Dropdown -->
+                <v-select
+                  v-model="store.selectedPreset"
+                  :items="Object.keys(store.viewPresets)"
+                  label="Select Preset to Apply"
+                  clearable
+                  class="mb-4"
+                  @update:model-value="applyPreset"
+                ></v-select>
+
+                <h3 v-if="Object.keys(store.viewPresets).length > 0" class="mb-2">
+                  Saved Presets:
+                </h3>
+                <v-list v-if="Object.keys(store.viewPresets).length > 0" dense class="mb-4">
+                  <v-list-item
+                    v-for="(preset, name) in store.viewPresets"
+                    :key="name"
+                    class="preset-list-item"
+                  >
+                    <v-list-item-title>{{ name }}</v-list-item-title>
+                    <v-list-item-action>
+                      <v-btn
+                        small
+                        icon
+                        title="Apply Preset"
+                        class="mr-2"
+                        @click="applyPreset(name)"
+                      >
+                        <v-icon>mdi-content-save-check</v-icon>
+                      </v-btn>
+                      <v-btn
+                        small
+                        icon
+                        title="Update Preset"
+                        class="mr-2"
+                        @click="openUpdatePresetDialog(name)"
+                      >
+                        <v-icon>mdi-pencil</v-icon>
+                      </v-btn>
+                      <v-btn
+                        small
+                        icon
+                        color="error"
+                        title="Delete Preset"
+                        @click="deletePreset(name)"
+                      >
+                        <v-icon>mdi-delete</v-icon>
+                      </v-btn>
+                    </v-list-item-action>
+                  </v-list-item>
+                </v-list>
+                <p v-else>No presets saved yet.</p>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+
+        <!-- Create Preset Dialog -->
+        <v-dialog v-model="createPresetDialog" max-width="500px">
+          <v-card>
+            <v-card-title class="headline">Create New View Preset</v-card-title>
+            <v-card-text>
+              <v-text-field
+                v-model="newPresetName"
+                label="Preset Name"
+                :rules="presetNameRules"
+                required
+              ></v-text-field>
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="blue darken-1" text @click="createPresetDialog = false">Cancel</v-btn>
+              <v-btn color="primary" @click="saveNewPreset">Save Preset</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+
+        <!-- Update Preset Dialog -->
+        <v-dialog v-model="updatePresetDialog" max-width="500px">
+          <v-card>
+            <v-card-title class="headline">Update View Preset</v-card-title>
+            <v-card-text>
+              <p>
+                Are you sure you want to update the preset '<strong>{{ presetToUpdateName }}</strong
+                >' with the current view visibility settings?
+              </p>
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="blue darken-1" text @click="updatePresetDialog = false">Cancel</v-btn>
+              <v-btn color="warning" @click="updatePreset">Update Preset</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+
+        <!-- Snackbar for feedback -->
+        <v-snackbar v-model="showSnackbar" :color="snackbarColor" :timeout="3000" bottom right>
+          {{ snackbarText }}
+          <template #action="{ attrs }">
+            <v-btn color="white" text v-bind="attrs" @click="showSnackbar = false"> Close </v-btn>
+          </template>
+        </v-snackbar>
         <v-row>
           <v-col cols="12">
             <v-card class="setting-card">
@@ -166,8 +282,10 @@ onMounted(async () => {
               <v-card-subtitle>Configure where JSON files will be saved on disk.</v-card-subtitle>
               <v-divider class="my-2"></v-divider>
               <v-card-text>
-                <p>Current save path: {{ jsonSavePath }}</p>
-                <v-btn color="primary" @click="selectJsonSavePath">Select Save Directory</v-btn>
+                <p>Current save path: {{ store.jsonSavePath }}</p>
+                <v-btn color="primary" @click="store.selectJsonSavePath"
+                  >Select Save Directory</v-btn
+                >
               </v-card-text>
             </v-card>
           </v-col>
@@ -179,7 +297,7 @@ onMounted(async () => {
               <v-card-subtitle>Reset all settings to their default values.</v-card-subtitle>
               <v-divider class="my-2"></v-divider>
               <v-card-text>
-                <v-btn color="warning" @click="resetSettings">Reset All Settings</v-btn>
+                <v-btn color="warning" @click="store.resetSettings">Reset All Settings</v-btn>
               </v-card-text>
             </v-card>
           </v-col>
@@ -190,33 +308,48 @@ onMounted(async () => {
               <v-card-title>About The App</v-card-title>
               <v-divider class="my-2"></v-divider>
               <v-card-text>
-                <p class="mb-3">Current Version: {{ appVersion }}</p>
-                <v-btn color="info" @click="checkForUpdates">Check for Updates</v-btn>
-                <div v-if="updateStatus" class="mt-4">
-                  <v-alert v-if="updateStatus === 'checking'" type="info" dense>
+                <p class="mb-3">Current Version: {{ store.appVersion }}</p>
+                <v-btn
+                  v-if="store.updateStatus === 'available'"
+                  color="primary"
+                  @click="downloadUpdate"
+                >
+                  Update Now
+                </v-btn>
+
+                <v-btn
+                  v-else
+                  color="info"
+                  :loading="store.updateStatus === 'checking'"
+                  @click="checkForUpdates"
+                >
+                  Check for Updates
+                </v-btn>
+                <div v-if="store.updateStatus" class="mt-4">
+                  <v-alert v-if="store.updateStatus === 'checking'" type="info" dense>
                     Checking for updates...
                   </v-alert>
-                  <v-alert v-if="updateStatus === 'available'" type="success" dense>
-                    A new version is available: {{ releaseInfo.version }}
-                    <div v-if="releaseInfo.releaseNotes" class="release-notes-content mt-2">
+                  <v-alert v-if="store.updateStatus === 'available'" type="success" dense>
+                    A new version is available: {{ store.releaseInfo?.version }}
+                    <div v-if="store.releaseInfo?.releaseNotes" class="release-notes-content mt-2">
                       <p><strong>Release Notes:</strong></p>
-                      <div v-html="releaseInfo.releaseNotes"></div>
+                      <div v-html="store.releaseInfo.releaseNotes"></div>
                     </div>
                   </v-alert>
-                  <v-alert v-if="updateStatus === 'not-available'" type="info" dense>
+                  <v-alert v-if="store.updateStatus === 'not-available'" type="info" dense>
                     You are on the latest version.
                   </v-alert>
-                  <v-alert v-if="updateStatus === 'downloading'" type="info" dense>
-                    Downloading update... {{ releaseInfo.percent.toFixed(2) }}%
+                  <v-alert v-if="store.updateStatus === 'downloading'" type="info" dense>
+                    Downloading update... {{ store.releaseInfo?.percent.toFixed(2) }}%
                     <v-progress-linear
-                      :model-value="releaseInfo.percent"
+                      :model-value="store.releaseInfo?.percent"
                       class="mt-2"
                     ></v-progress-linear>
                   </v-alert>
-                  <v-alert v-if="updateStatus === 'downloaded'" type="success" dense>
+                  <v-alert v-if="store.updateStatus === 'downloaded'" type="success" dense>
                     Update downloaded. It will be installed on restart.
                   </v-alert>
-                  <v-alert v-if="updateStatus === 'error'" type="error" dense>
+                  <v-alert v-if="store.updateStatus === 'error'" type="error" dense>
                     An error occurred while checking for updates.
                   </v-alert>
                 </div>
@@ -242,7 +375,6 @@ onMounted(async () => {
   left: 56px;
   right: 0;
   z-index: 999;
-
   padding: 16px;
   transition: left 0.2s ease;
 }
@@ -270,15 +402,14 @@ onMounted(async () => {
 }
 
 .release-notes-content {
-  max-height: 200px; /* Limit height for scrollability */
-  overflow-y: auto; /* Add scrollbar if content exceeds height */
+  max-height: 200px;
+  overflow-y: auto;
   border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
   padding: 12px;
   background-color: rgba(var(--v-theme-surface-variant), 0.1);
   border-radius: 4px;
 }
 
-/* Basic styling for markdown rendering (if releaseNotes is markdown) */
 .release-notes-content h1,
 .release-notes-content h2,
 .release-notes-content h3,

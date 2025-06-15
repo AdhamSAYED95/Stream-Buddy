@@ -1,49 +1,18 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { useAppStateStore } from '../store/appState'
 
-const emit = defineEmits(['update-player'])
+const store = useAppStateStore()
 
-const props = defineProps({
-  player: {
-    type: Object,
-    required: true
-  }
-})
-
-const heroFilePath = ref(props.player.heroImage || '')
-
-const selectImageFile = async (type) => {
-  const result = await window.api.openFileDialog(type)
-  if (!result) return
-
-  const { path } = result
-
-  if (type === 'image') {
-    heroFilePath.value = path
-    const updatedPlayer = {
-      ...props.player,
-      heroImage: path
-    }
-    emit('update-player', updatedPlayer)
+const selectImageFile = async () => {
+  const result = await window.api.openFileDialog('image')
+  if (result && result.path) {
+    store.players.heroImage = result.path
   }
 }
 
 const handleClearHeroImage = () => {
-  heroFilePath.value = ''
-  const updatedPlayer = {
-    ...props.player,
-    heroImage: ''
-  }
-  emit('update-player', updatedPlayer)
+  store.players.heroImage = ''
 }
-
-watch(
-  () => props.player,
-  (newPlayer) => {
-    heroFilePath.value = newPlayer.heroImage || ''
-  },
-  { deep: true }
-)
 </script>
 
 <template>
@@ -53,84 +22,72 @@ watch(
         <v-card class="player-stats-panel" flat>
           <v-col cols="12" class="pa-1 input-spacing">
             <v-text-field
+              v-model="store.players.playerName"
               label="Player Name"
-              :model-value="props.player.playerName"
               type="text"
               hide-details="auto"
               class="custom-text-input"
               append-inner-icon="mdi-pencil"
               flat
-              @update:model-value="
-                (value) => emit('update-player', { ...props.player, playerName: value })
-              "
             ></v-text-field>
           </v-col>
           <v-col cols="12" class="pa-1 input-spacing">
             <v-text-field
+              v-model="store.players.teamName"
               label="Team Name"
-              :model-value="props.player.teamName"
               type="text"
               hide-details="auto"
               class="custom-text-input"
               append-inner-icon="mdi-pencil"
               flat
-              @update:model-value="
-                (value) => emit('update-player', { ...props.player, teamName: value })
-              "
             ></v-text-field>
           </v-col>
           <v-col cols="12" class="pa-1 input-spacing">
             <v-text-field
+              v-model="store.players.favouriteWeapon"
               label="Favorite Weapon"
-              :model-value="props.player.favouriteWeapon"
               append-inner-icon="mdi-pencil"
               type="text"
               hide-details="auto"
               class="custom-text-input"
               flat
-              @update:model-value="
-                (value) => emit('update-player', { ...props.player, favouriteWeapon: value })
-              "
             ></v-text-field>
           </v-col>
           <v-col cols="12" class="pa-1 input-spacing">
             <v-text-field
+              v-model.number="store.players.economyScore"
               label="Economy Score"
-              :model-value="props.player.economyScore"
               type="number"
               min="0"
               hide-details="auto"
               class="custom-text-input"
               append-inner-icon="mdi-pencil"
               flat
-              @update:model-value="
-                (value) => emit('update-player', { ...props.player, economyScore: Number(value) })
-              "
             ></v-text-field>
           </v-col>
           <v-col cols="12" class="pa-1 input-spacing">
             <v-text-field
-              :model-value="heroFilePath.split(/[\\/]/).pop() || ''"
+              :model-value="store.players.heroImage.split(/[\\/]/).pop() || ''"
               label="Hero Image"
               readonly
               hide-details="auto"
               class="custom-text-input"
               flat
-              @click="selectImageFile('image')"
+              @click="selectImageFile"
             >
-              <template v-slot:append-inner>
+              <template #append-inner>
                 <v-btn
-                  v-if="!heroFilePath"
+                  v-if="!store.players.heroImage"
                   small
                   text
                   class="add-button-file"
                   :ripple="false"
-                  @click.stop="selectImageFile('image')"
+                  @click.stop="selectImageFile"
                 >
                   + ADD
                 </v-btn>
                 <v-btn
-                  v-if="heroFilePath"
+                  v-if="store.players.heroImage"
                   small
                   icon
                   class="clear-button"
@@ -143,47 +100,38 @@ watch(
           </v-col>
           <v-col cols="12" class="pa-1 input-spacing">
             <v-text-field
+              v-model.number="store.players.kills"
               label="Kills"
-              :model-value="props.player.kills"
               type="number"
               min="0"
               hide-details="auto"
               class="custom-text-input"
               append-inner-icon="mdi-pencil"
               flat
-              @update:model-value="
-                (value) => emit('update-player', { ...props.player, kills: Number(value) })
-              "
             ></v-text-field>
           </v-col>
           <v-col cols="12" class="pa-1 input-spacing">
             <v-text-field
+              v-model.number="store.players.deaths"
               label="Deaths"
-              :model-value="props.player.deaths"
               type="number"
               min="0"
               hide-details="auto"
               class="custom-text-input"
               append-inner-icon="mdi-pencil"
               flat
-              @update:model-value="
-                (value) => emit('update-player', { ...props.player, deaths: Number(value) })
-              "
             ></v-text-field>
           </v-col>
           <v-col cols="12" class="pa-1 input-spacing">
             <v-text-field
+              v-model.number="store.players.assists"
               label="Assists"
-              :model-value="props.player.assists"
               type="number"
               min="0"
               hide-details="auto"
               class="custom-text-input"
               append-inner-icon="mdi-pencil"
               flat
-              @update:model-value="
-                (value) => emit('update-player', { ...props.player, assists: Number(value) })
-              "
             ></v-text-field>
           </v-col>
         </v-card>

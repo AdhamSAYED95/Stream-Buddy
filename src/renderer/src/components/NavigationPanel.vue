@@ -1,27 +1,16 @@
 <script setup>
 import { RouterLink } from 'vue-router'
-import { ref, onMounted } from 'vue'
+import { useAppStateStore, allNavigableViews } from '../store/appState'
 
-const navigationMode = ref('mini')
-
-function updateNavigationMode(mode) {
-  navigationMode.value = mode
-}
-
-onMounted(() => {
-  const savedNavMode = localStorage.getItem('navigation-mode')
-  if (savedNavMode) {
-    navigationMode.value = savedNavMode
-  }
-})
+const store = useAppStateStore()
 </script>
 
 <template>
   <v-app>
     <v-layout>
       <v-navigation-drawer
-        :expand-on-hover="navigationMode === 'mini'"
-        :rail="navigationMode === 'mini'"
+        :expand-on-hover="store.isNavigationMini"
+        :rail="store.isNavigationMini"
         permanent
         :width="240"
         class="navigation-drawer"
@@ -32,21 +21,13 @@ onMounted(() => {
               <v-list-item-title>Home</v-list-item-title>
             </v-list-item>
           </RouterLink>
-          <RouterLink to="/TeamsView" class="nav-link">
-            <v-list-item prepend-icon="mdi-tournament">
-              <v-list-item-title>Brackets View</v-list-item-title>
-            </v-list-item>
-          </RouterLink>
-          <RouterLink to="/PlayerStats" class="nav-link">
-            <v-list-item prepend-icon="mdi-account-star">
-              <v-list-item-title>Players Stats</v-list-item-title>
-            </v-list-item>
-          </RouterLink>
-          <RouterLink to="/TodayMatches" class="nav-link">
-            <v-list-item prepend-icon="mdi-calendar-today">
-              <v-list-item-title>Today's Matches</v-list-item-title>
-            </v-list-item>
-          </RouterLink>
+          <template v-for="item in allNavigableViews" :key="item.name">
+            <RouterLink v-if="store.viewVisibility[item.name]" :to="item.path" class="nav-link">
+              <v-list-item :prepend-icon="item.icon">
+                <v-list-item-title>{{ item.title }}</v-list-item-title>
+              </v-list-item>
+            </RouterLink>
+          </template>
           <RouterLink to="/Settings" class="nav-link">
             <v-list-item prepend-icon="mdi-cog">
               <v-list-item-title>Settings</v-list-item-title>
@@ -55,7 +36,7 @@ onMounted(() => {
         </v-list>
       </v-navigation-drawer>
       <v-main class="main-content">
-        <router-view v-slot="{ Component }" @update:navigation-mode="updateNavigationMode">
+        <router-view v-slot="{ Component }">
           <Transition name="fade" mode="out-in">
             <keep-alive>
               <component :is="Component" />
@@ -114,6 +95,7 @@ onMounted(() => {
 }
 
 .main-content {
+  /* Adjusted for v-app-bar height with compact density */
   margin-left: 56px;
   transition: margin-left 0.2s ease;
   min-height: 100vh;

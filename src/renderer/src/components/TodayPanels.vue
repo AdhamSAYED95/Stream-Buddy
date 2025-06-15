@@ -153,7 +153,7 @@ onUnmounted(() => {
                 flat
                 @click="selectImageViaElectron('firstMatch', 'leftTeamLogo')"
               >
-                <template v-slot:append-inner>
+                <template #append-inner>
                   <v-btn
                     v-if="!firstMatchLeftLogoFileName"
                     small
@@ -183,7 +183,7 @@ onUnmounted(() => {
                 flat
                 @click="selectImageViaElectron('firstMatch', 'leftTeamFlag')"
               >
-                <template v-slot:append-inner>
+                <template #append-inner>
                   <v-btn
                     v-if="!firstMatchLeftFlagFileName"
                     small
@@ -224,7 +224,7 @@ onUnmounted(() => {
                 flat
                 @click="selectImageViaElectron('firstMatch', 'rightTeamLogo')"
               >
-                <template v-slot:append-inner>
+                <template #append-inner>
                   <v-btn
                     v-if="!firstMatchRightLogoFileName"
                     small
@@ -254,7 +254,7 @@ onUnmounted(() => {
                 flat
                 @click="selectImageViaElectron('firstMatch', 'rightTeamFlag')"
               >
-                <template v-slot:append-inner>
+                <template #append-inner>
                   <v-btn
                     v-if="!firstMatchRightFlagFileName"
                     small
@@ -314,7 +314,7 @@ onUnmounted(() => {
                 flat
                 @click="selectImageViaElectron('secondMatch', 'leftTeamLogo')"
               >
-                <template v-slot:append-inner>
+                <template #append-inner>
                   <v-btn
                     v-if="!secondMatchLeftLogoFileName"
                     small
@@ -344,7 +344,7 @@ onUnmounted(() => {
                 flat
                 @click="selectImageViaElectron('secondMatch', 'leftTeamFlag')"
               >
-                <template v-slot:append-inner>
+                <template #append-inner>
                   <v-btn
                     v-if="!secondMatchLeftFlagFileName"
                     small
@@ -385,7 +385,7 @@ onUnmounted(() => {
                 flat
                 @click="selectImageViaElectron('secondMatch', 'rightTeamLogo')"
               >
-                <template v-slot:append-inner>
+                <template #append-inner>
                   <v-btn
                     v-if="!secondMatchRightLogoFileName"
                     small
@@ -415,7 +415,7 @@ onUnmounted(() => {
                 flat
                 @click="selectImageViaElectron('secondMatch', 'rightTeamFlag')"
               >
-                <template v-slot:append-inner>
+                <template #append-inner>
                   <v-btn
                     v-if="!secondMatchRightFlagFileName"
                     small

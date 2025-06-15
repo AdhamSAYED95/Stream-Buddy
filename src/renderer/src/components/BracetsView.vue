@@ -34,10 +34,8 @@ const transformTeamsForOutput = () => {
 const createBracketsJson = async () => {
   const transformedData = transformTeamsForOutput()
   const jsonData = JSON.stringify(transformedData, null, 2)
-  const defaultPath = await window.api.getDefaultPath()
-  const savePath = localStorage.getItem('json-save-path') || defaultPath
   try {
-    const created = await window.api.createFile(`${savePath}/ViewData/BracketsView.json`, jsonData)
+    const created = await window.api.createFile(`${store.jsonSavePath}/BracketsView.json`, jsonData)
     if (created) {
       showSuccess.value = true
     } else {
