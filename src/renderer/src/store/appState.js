@@ -88,8 +88,6 @@ export const useAppStateStore = defineStore('appState', {
       if (this.viewPresets[presetName]) {
         this.viewVisibility = { ...this.viewPresets[presetName] }
         this.selectedPreset = presetName
-      } else {
-        console.warn(`Preset '${presetName}' not found.`)
       }
     },
     updateViewPreset(presetName) {
@@ -103,8 +101,11 @@ export const useAppStateStore = defineStore('appState', {
     deleteViewPreset(presetName) {
       if (this.viewPresets[presetName]) {
         delete this.viewPresets[presetName]
+        allNavigableViews.forEach((view) => {
+          this.viewVisibility[view.name] = true
+        })
         if (this.selectedPreset === presetName) {
-          this.selectedPreset = null // Clear selected if deleted
+          this.selectedPreset = null
         }
       } else {
         console.warn(`Preset '${presetName}' not found for deletion.`)

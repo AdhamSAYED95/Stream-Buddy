@@ -15,12 +15,7 @@ const store = useAppStateStore()
         :width="240"
         class="navigation-drawer"
       >
-        <v-list density="compact" nav>
-          <RouterLink to="/" class="nav-link">
-            <v-list-item prepend-icon="mdi-home">
-              <v-list-item-title>Home</v-list-item-title>
-            </v-list-item>
-          </RouterLink>
+        <v-list density="compact" nav class="nav-list">
           <template v-for="item in allNavigableViews" :key="item.name">
             <RouterLink v-if="store.viewVisibility[item.name]" :to="item.path" class="nav-link">
               <v-list-item :prepend-icon="item.icon">
@@ -28,7 +23,8 @@ const store = useAppStateStore()
               </v-list-item>
             </RouterLink>
           </template>
-          <RouterLink to="/Settings" class="nav-link">
+          <!-- Settings item pushed to the bottom -->
+          <RouterLink to="/Settings" class="nav-link settings-link">
             <v-list-item prepend-icon="mdi-cog">
               <v-list-item-title>Settings</v-list-item-title>
             </v-list-item>
@@ -66,21 +62,25 @@ const store = useAppStateStore()
 
 /* Style for the active route link */
 .nav-link.router-link-active .v-list-item {
-  background-color: rgb(var(--v-theme-active-item-bg)) !important; /* Green background */
+  background-color: rgb(var(--v-theme-active-item-bg)) !important;
 }
 
 .nav-link.router-link-active .clickable-icon,
 .nav-link.router-link-active .v-list-item-title {
-  color: rgb(var(--v-theme-active-item)) !important; /* Green text/icon */
+  color: rgb(var(--v-theme-active-item)) !important;
 }
 
-/* Custom class for the pin toggle button for specific styling if needed */
-.pin-toggle-list-item {
-  cursor: pointer;
+/* Make the v-list a flex container to push Settings to the bottom */
+.nav-list {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
 }
-.pin-toggle-list-item:hover .v-list-item-title,
-.pin-toggle-list-item:hover .v-icon {
-  color: rgb(var(--v-theme-on-surface));
+
+/* Push the Settings item to the bottom */
+.settings-link {
+  margin-top: auto;
 }
 
 :deep(.v-navigation-drawer) {
@@ -95,7 +95,6 @@ const store = useAppStateStore()
 }
 
 .main-content {
-  /* Adjusted for v-app-bar height with compact density */
   margin-left: 56px;
   transition: margin-left 0.2s ease;
   min-height: 100vh;
@@ -103,10 +102,9 @@ const store = useAppStateStore()
   padding: 16px;
 }
 
-/* Adjust fixed-header and main-content when drawer expands */
 :deep(.v-navigation-drawer--is-hovering) + .v-main .fixed-header,
 :deep(.v-navigation-drawer--active:not(.v-navigation-drawer--rail)) + .v-main .fixed-header {
-  left: calc(240px + 16px); /* Drawer width + padding */
+  left: calc(240px + 16px);
 }
 
 :deep(.v-navigation-drawer--is-hovering) ~ .v-main,
@@ -119,7 +117,6 @@ const store = useAppStateStore()
   color: rgb(var(--v-theme-on-surface));
 }
 
-/* Define the fade transition */
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.3s ease;

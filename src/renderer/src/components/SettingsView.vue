@@ -12,6 +12,8 @@ const showSnackbar = ref(false)
 const snackbarText = ref('')
 const snackbarColor = ref('success')
 
+const confirmUpdateOrCreateDialog = ref(false)
+
 const presetNameRules = [
   (v) => !!v || 'Preset name is required',
   (v) => (v && v.length <= 50) || 'Name must be less than 50 characters',
@@ -28,10 +30,6 @@ const saveNewPreset = () => {
     showFeedback('Preset name cannot be empty.', 'error')
     return
   }
-  if (Object.keys(store.viewPresets).includes(newPresetName.value.trim())) {
-    showFeedback('A preset with this name already exists. Please choose a different name.', 'error')
-    return
-  }
 
   store.saveViewPreset(newPresetName.value.trim())
   showFeedback(`Preset '${newPresetName.value.trim()}' saved successfully!`, 'success')
@@ -42,12 +40,12 @@ const saveNewPreset = () => {
 const applyPreset = (presetName) => {
   store.applyViewPreset(presetName)
   store.selectedPreset = presetName
-  if (store.selectedPreset !== null) showFeedback(`Preset '${presetName}' applied!`, 'info')
+  if (store.selectedPreset !== null) showFeedback(`Preset ${presetName} applied!`, 'info')
 }
 
 const openUpdatePresetDialog = (presetName) => {
   presetToUpdateName.value = presetName
-  updatePresetDialog.value = true
+  confirmUpdateOrCreateDialog.value = true
 }
 
 const updatePreset = () => {
@@ -55,6 +53,16 @@ const updatePreset = () => {
     store.updateViewPreset(presetToUpdateName.value)
     showFeedback(`Preset '${presetToUpdateName.value}' updated!`, 'success')
     updatePresetDialog.value = false
+  }
+}
+
+const handlePresetChoice = (choice) => {
+  confirmUpdateOrCreateDialog.value = false
+
+  if (choice === 'update') {
+    updatePresetDialog.value = true
+  } else if (choice === 'create') {
+    createPresetDialog.value = true
   }
 }
 
@@ -77,6 +85,11 @@ const checkForUpdates = () => {
 
 const downloadUpdate = () => {
   store.downloadUpdate()
+}
+
+const clearAllData = () => {
+  store.clearAllData()
+  showFeedback(`All Inputs fields cleared`, 'info')
 }
 
 onMounted(async () => {
@@ -135,6 +148,18 @@ onMounted(async () => {
                   hide-details
                   @update:model-value="store.toggleNavigationMode"
                 ></v-switch>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col cols="12">
+            <v-card class="setting-card">
+              <v-card-title>Clear Input</v-card-title>
+              <v-card-subtitle>Clear all input data from all views.</v-card-subtitle>
+              <v-divider class="my-2"></v-divider>
+              <v-card-text>
+                <v-btn color="red" @click="clearAllData">Clear All Input Data</v-btn>
               </v-card-text>
             </v-card>
           </v-col>
@@ -256,14 +281,33 @@ onMounted(async () => {
             <v-card-title class="headline">Update View Preset</v-card-title>
             <v-card-text>
               <p>
-                Are you sure you want to update the preset '<strong>{{ presetToUpdateName }}</strong
-                >' with the current view visibility settings?
+                Are you sure you want to update the preset
+                <strong>{{ presetToUpdateName }}</strong> with the current view visibility settings?
               </p>
             </v-card-text>
             <v-card-actions>
               <v-spacer></v-spacer>
               <v-btn color="blue darken-1" text @click="updatePresetDialog = false">Cancel</v-btn>
               <v-btn color="warning" @click="updatePreset">Update Preset</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+
+        <v-dialog v-model="confirmUpdateOrCreateDialog" max-width="550px">
+          <v-card>
+            <v-card-title class="headline">Preset Action for {{ presetToUpdateName }}</v-card-title>
+            <v-card-text>
+              <p>Do you want to:</p>
+              <ul>
+                <li>Update this existing preset with the current view settings?</li>
+                <li>Create a new preset based on the current view settings?</li>
+              </ul>
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="blue darken-1" text @click="handlePresetChoice('cancel')">Cancel</v-btn>
+              <v-btn color="primary" @click="handlePresetChoice('create')">Create New</v-btn>
+              <v-btn color="warning" @click="handlePresetChoice('update')">Update This One</v-btn>
             </v-card-actions>
           </v-card>
         </v-dialog>
