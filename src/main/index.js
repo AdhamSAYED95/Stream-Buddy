@@ -200,7 +200,7 @@ autoUpdater.on('update-available', (info) => {
             type: 'info',
             title: 'Downloading Update',
             message: 'The update is being downloaded. Please wait...',
-            detail: 'This window will close automatically when the download is complete.'
+            detail: 'The app will close automatically when the download is complete.'
           })
 
           autoUpdater.downloadUpdate()
