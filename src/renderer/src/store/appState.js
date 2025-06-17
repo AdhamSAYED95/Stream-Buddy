@@ -190,6 +190,14 @@ export const useAppStateStore = defineStore('appState', {
     },
     setDefaultPath(path) {
       this.jsonSavePath = path
+    },
+    updateTeam(teamId, teamData) {
+      if (this.teams[teamId]) {
+        this.teams[teamId] = { ...this.teams[teamId], ...teamData }
+      }
+    },
+    clearTeams() {
+      this.teams = initializeTeams()
     }
   },
   persist: {

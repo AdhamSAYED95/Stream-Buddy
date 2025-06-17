@@ -1,80 +1,42 @@
 <script setup>
-import { ref, onUnmounted, computed } from 'vue'
+import { reactive, onMounted, computed } from 'vue'
+import { useAppStateStore } from '../store/appState'
+import { useImagePreview } from '../composables/imagePreview'
 
-const emit = defineEmits(['update:matches'])
+const store = useAppStateStore()
 
-const props = defineProps({
-  matches: {
-    type: Object,
-    required: true
+const imagePreviews = reactive({
+  firstMatch: {
+    leftTeamLogo: useImagePreview(),
+    leftTeamFlag: useImagePreview(),
+    rightTeamLogo: useImagePreview(),
+    rightTeamFlag: useImagePreview()
+  },
+  secondMatch: {
+    leftTeamLogo: useImagePreview(),
+    leftTeamFlag: useImagePreview(),
+    rightTeamLogo: useImagePreview(),
+    rightTeamFlag: useImagePreview()
   }
 })
 
-const previews = {
-  firstMatch: {
-    leftLogoPreviewUrl: ref(''),
-    rightLogoPreviewUrl: ref(''),
-    leftFlagPreviewUrl: ref(''),
-    rightFlagPreviewUrl: ref('')
-  },
-  secondMatch: {
-    leftLogoPreviewUrl: ref(''),
-    rightLogoPreviewUrl: ref(''),
-    leftFlagPreviewUrl: ref(''),
-    rightFlagPreviewUrl: ref('')
-  }
-}
-
-const updateMatchField = (matchKey, field, value) => {
-  const updatedMatches = {
-    ...props.matches,
-    [matchKey]: {
-      ...props.matches[matchKey],
-      [field]: value
-    }
-  }
-  emit('update:matches', updatedMatches)
-}
-
-const updateImageField = (matchKey, field, filePath) => {
-  const updatedMatches = {
-    ...props.matches,
-    [matchKey]: {
-      ...props.matches[matchKey],
-      [field]: filePath
-    }
-  }
-  emit('update:matches', updatedMatches)
-}
-
-const selectImageViaElectron = async (matchKey, field) => {
-  if (window.api && typeof window.api.openFileDialog === 'function') {
-    try {
-      const result = await window.api.openFileDialog('image')
-      if (result && result.path) {
-        updateImageField(matchKey, field, result.path)
-      }
-    } catch (error) {
-      console.error('Error opening file dialog:', error)
-    }
-  } else {
-    console.error(
-      'window.api.openFileDialog is not available. Ensure it is exposed via preload script in Electron.'
-    )
+const selectImageFile = async (matchKey, field) => {
+  const result = await window.api.openFileDialog('image')
+  if (result && result.path) {
+    store.matches[matchKey][field] = result.path
+    await imagePreviews[matchKey][field].loadImagePreview(result.path)
   }
 }
 
 const handleClearImage = (matchKey, field) => {
-  updateImageField(matchKey, field, '')
+  store.matches[matchKey][field] = ''
+  imagePreviews[matchKey][field].clearPreview()
 }
 
 const createFileNameComputed = (matchKey, fieldName) => {
   return computed(() => {
-    const imagePath = props.matches[matchKey]?.[fieldName]
-    if (typeof imagePath === 'string' && imagePath) {
-      return imagePath.split(/[\\/]/).pop() || ''
-    }
-    return ''
+    const imagePath = store.matches[matchKey]?.[fieldName]
+    return typeof imagePath === 'string' && imagePath ? imagePath.split(/[\\/]/).pop() : ''
   })
 }
 
@@ -88,14 +50,15 @@ const secondMatchRightLogoFileName = createFileNameComputed('secondMatch', 'righ
 const secondMatchLeftFlagFileName = createFileNameComputed('secondMatch', 'leftTeamFlag')
 const secondMatchRightFlagFileName = createFileNameComputed('secondMatch', 'rightTeamFlag')
 
-onUnmounted(() => {
-  Object.values(previews).forEach((previewSet) => {
-    Object.values(previewSet).forEach((urlRef) => {
-      if (urlRef.value?.startsWith('blob:')) {
-        URL.revokeObjectURL(urlRef.value)
+onMounted(() => {
+  for (const matchKey in imagePreviews) {
+    for (const field in imagePreviews[matchKey]) {
+      const imagePath = store.matches[matchKey]?.[field]
+      if (imagePath) {
+        imagePreviews[matchKey][field].loadImagePreview(imagePath)
       }
-    })
-  })
+    }
+  }
 })
 </script>
 
@@ -106,14 +69,13 @@ onUnmounted(() => {
         <v-card class="info-panel" flat>
           <v-card-title class="panel-title">INFO</v-card-title>
           <v-text-field
+            v-model="store.matches.date"
             label="Date"
-            :model-value="props.matches.date"
             type="date"
             hide-details="auto"
             class="custom-text-input"
             flat
             max="9999-12-31"
-            @update:model-value="emit('update:matches', { ...props.matches, date: $event })"
           ></v-text-field>
         </v-card>
       </v-col>
@@ -124,34 +86,42 @@ onUnmounted(() => {
         <v-card class="match-panel" flat>
           <v-card-title class="panel-title">FIRST MATCH</v-card-title>
           <v-text-field
+            v-model="store.matches.firstMatch.matchTime"
             label="Match Time"
-            :model-value="props.matches.firstMatch.matchTime"
             type="time"
             hide-details="auto"
             class="custom-text-input"
             flat
-            @update:model-value="updateMatchField('firstMatch', 'matchTime', $event)"
           ></v-text-field>
           <v-row no-gutters>
             <v-col cols="6" class="team-section">
               <v-text-field
+                v-model="store.matches.firstMatch.leftTeamName"
                 label="Left Team Name"
-                :model-value="props.matches.firstMatch.leftTeamName"
                 type="text"
                 hide-details="auto"
                 class="custom-text-input"
                 flat
-                @update:model-value="updateMatchField('firstMatch', 'leftTeamName', $event)"
               ></v-text-field>
 
+              <div v-if="store.matches.firstMatch.leftTeamLogo" class="image-preview-container">
+                <div class="image-preview-wrapper">
+                  <img
+                    :src="imagePreviews.firstMatch.leftTeamLogo.imageDataUrl"
+                    alt="Logo Preview"
+                    class="tiny-image-preview"
+                  />
+                  <span class="image-preview-label">Selected Logo:</span>
+                </div>
+              </div>
               <v-text-field
+                v-model="firstMatchLeftLogoFileName"
                 label="Left Team Logo"
-                :model-value="firstMatchLeftLogoFileName"
                 readonly
                 hide-details="auto"
                 class="custom-text-input"
                 flat
-                @click="selectImageViaElectron('firstMatch', 'leftTeamLogo')"
+                @click="selectImageFile('firstMatch', 'leftTeamLogo')"
               >
                 <template #append-inner>
                   <v-btn
@@ -160,7 +130,7 @@ onUnmounted(() => {
                     text
                     class="add-button-file"
                     :ripple="false"
-                    @click.stop="selectImageViaElectron('firstMatch', 'leftTeamLogo')"
+                    @click.stop="selectImageFile('firstMatch', 'leftTeamLogo')"
                     >+ ADD</v-btn
                   >
                   <v-btn
@@ -174,14 +144,24 @@ onUnmounted(() => {
                 </template>
               </v-text-field>
 
+              <div v-if="store.matches.firstMatch.leftTeamFlag" class="image-preview-container">
+                <div class="image-preview-wrapper">
+                  <img
+                    :src="imagePreviews.firstMatch.leftTeamFlag.imageDataUrl"
+                    alt="Flag Preview"
+                    class="tiny-image-preview"
+                  />
+                  <span class="image-preview-label">Selected Flag:</span>
+                </div>
+              </div>
               <v-text-field
+                v-model="firstMatchLeftFlagFileName"
                 label="Left Team Flag"
-                :model-value="firstMatchLeftFlagFileName"
                 readonly
                 hide-details="auto"
                 class="custom-text-input"
                 flat
-                @click="selectImageViaElectron('firstMatch', 'leftTeamFlag')"
+                @click="selectImageFile('firstMatch', 'leftTeamFlag')"
               >
                 <template #append-inner>
                   <v-btn
@@ -190,7 +170,7 @@ onUnmounted(() => {
                     text
                     class="add-button-file"
                     :ripple="false"
-                    @click.stop="selectImageViaElectron('firstMatch', 'leftTeamFlag')"
+                    @click.stop="selectImageFile('firstMatch', 'leftTeamFlag')"
                     >+ ADD</v-btn
                   >
                   <v-btn
@@ -206,23 +186,32 @@ onUnmounted(() => {
             </v-col>
             <v-col cols="6" class="team-section">
               <v-text-field
+                v-model="store.matches.firstMatch.rightTeamName"
                 label="Right Team Name"
-                :model-value="props.matches.firstMatch.rightTeamName"
                 type="text"
                 hide-details="auto"
                 class="custom-text-input"
                 flat
-                @update:model-value="updateMatchField('firstMatch', 'rightTeamName', $event)"
               ></v-text-field>
 
+              <div v-if="store.matches.firstMatch.rightTeamLogo" class="image-preview-container">
+                <div class="image-preview-wrapper">
+                  <img
+                    :src="imagePreviews.firstMatch.rightTeamLogo.imageDataUrl"
+                    alt="Logo Preview"
+                    class="tiny-image-preview"
+                  />
+                  <span class="image-preview-label">Selected Flag:</span>
+                </div>
+              </div>
               <v-text-field
+                v-model="firstMatchRightLogoFileName"
                 label="Right Team Logo"
-                :model-value="firstMatchRightLogoFileName"
                 readonly
                 hide-details="auto"
                 class="custom-text-input"
                 flat
-                @click="selectImageViaElectron('firstMatch', 'rightTeamLogo')"
+                @click="selectImageFile('firstMatch', 'rightTeamLogo')"
               >
                 <template #append-inner>
                   <v-btn
@@ -231,7 +220,7 @@ onUnmounted(() => {
                     text
                     class="add-button-file"
                     :ripple="false"
-                    @click.stop="selectImageViaElectron('firstMatch', 'rightTeamLogo')"
+                    @click.stop="selectImageFile('firstMatch', 'rightTeamLogo')"
                     >+ ADD</v-btn
                   >
                   <v-btn
@@ -245,14 +234,25 @@ onUnmounted(() => {
                 </template>
               </v-text-field>
 
+              <div v-if="store.matches.firstMatch.rightTeamFlag" class="image-preview-container">
+                <div class="image-preview-wrapper">
+                  <img
+                    :src="imagePreviews.firstMatch.rightTeamFlag.imageDataUrl"
+                    alt="Flag Preview"
+                    class="tiny-image-preview"
+                  />
+                  <span class="image-preview-label">Selected Flag:</span>
+                </div>
+              </div>
+
               <v-text-field
+                v-model="firstMatchRightFlagFileName"
                 label="Right Team Flag"
-                :model-value="firstMatchRightFlagFileName"
                 readonly
                 hide-details="auto"
                 class="custom-text-input"
                 flat
-                @click="selectImageViaElectron('firstMatch', 'rightTeamFlag')"
+                @click="selectImageFile('firstMatch', 'rightTeamFlag')"
               >
                 <template #append-inner>
                   <v-btn
@@ -261,7 +261,7 @@ onUnmounted(() => {
                     text
                     class="add-button-file"
                     :ripple="false"
-                    @click.stop="selectImageViaElectron('firstMatch', 'rightTeamFlag')"
+                    @click.stop="selectImageFile('firstMatch', 'rightTeamFlag')"
                     >+ ADD</v-btn
                   >
                   <v-btn
@@ -285,34 +285,43 @@ onUnmounted(() => {
         <v-card class="match-panel" flat>
           <v-card-title class="panel-title">SECOND MATCH</v-card-title>
           <v-text-field
+            v-model="store.matches.secondMatch.matchTime"
             label="Match Time"
-            :model-value="props.matches.secondMatch.matchTime"
             type="time"
             hide-details="auto"
             class="custom-text-input"
             flat
-            @update:model-value="updateMatchField('secondMatch', 'matchTime', $event)"
           ></v-text-field>
           <v-row no-gutters>
             <v-col cols="6" class="team-section">
               <v-text-field
+                v-model="store.matches.secondMatch.leftTeamName"
                 label="Left Team Name"
-                :model-value="props.matches.secondMatch.leftTeamName"
                 type="text"
                 hide-details="auto"
                 class="custom-text-input"
                 flat
-                @update:model-value="updateMatchField('secondMatch', 'leftTeamName', $event)"
               ></v-text-field>
 
+              <div v-if="store.matches.secondMatch.leftTeamLogo" class="image-preview-container">
+                <div class="image-preview-wrapper">
+                  <img
+                    :src="imagePreviews.secondMatch.leftTeamLogo.imageDataUrl"
+                    alt="Logo Preview"
+                    class="tiny-image-preview"
+                  />
+                  <span class="image-preview-label">Selected Logo:</span>
+                </div>
+              </div>
+
               <v-text-field
+                v-model="secondMatchLeftLogoFileName"
                 label="Left Team Logo"
-                :model-value="secondMatchLeftLogoFileName"
                 readonly
                 hide-details="auto"
                 class="custom-text-input"
                 flat
-                @click="selectImageViaElectron('secondMatch', 'leftTeamLogo')"
+                @click="selectImageFile('secondMatch', 'leftTeamLogo')"
               >
                 <template #append-inner>
                   <v-btn
@@ -321,7 +330,7 @@ onUnmounted(() => {
                     text
                     class="add-button-file"
                     :ripple="false"
-                    @click.stop="selectImageViaElectron('secondMatch', 'leftTeamLogo')"
+                    @click.stop="selectImageFile('secondMatch', 'leftTeamLogo')"
                     >+ ADD</v-btn
                   >
                   <v-btn
@@ -335,14 +344,25 @@ onUnmounted(() => {
                 </template>
               </v-text-field>
 
+              <div v-if="store.matches.secondMatch.leftTeamFlag" class="image-preview-container">
+                <div class="image-preview-wrapper">
+                  <img
+                    :src="imagePreviews.secondMatch.leftTeamFlag.imageDataUrl"
+                    alt="Flag Preview"
+                    class="tiny-image-preview"
+                  />
+                  <span class="image-preview-label">Selected Flag:</span>
+                </div>
+              </div>
+
               <v-text-field
+                v-model="secondMatchLeftFlagFileName"
                 label="Left Team Flag"
-                :model-value="secondMatchLeftFlagFileName"
                 readonly
                 hide-details="auto"
                 class="custom-text-input"
                 flat
-                @click="selectImageViaElectron('secondMatch', 'leftTeamFlag')"
+                @click="selectImageFile('secondMatch', 'leftTeamFlag')"
               >
                 <template #append-inner>
                   <v-btn
@@ -351,7 +371,7 @@ onUnmounted(() => {
                     text
                     class="add-button-file"
                     :ripple="false"
-                    @click.stop="selectImageViaElectron('secondMatch', 'leftTeamFlag')"
+                    @click.stop="selectImageFile('secondMatch', 'leftTeamFlag')"
                     >+ ADD</v-btn
                   >
                   <v-btn
@@ -367,23 +387,33 @@ onUnmounted(() => {
             </v-col>
             <v-col cols="6" class="team-section">
               <v-text-field
+                v-model="store.matches.secondMatch.rightTeamName"
                 label="Right Team Name"
-                :model-value="props.matches.secondMatch.rightTeamName"
                 type="text"
                 hide-details="auto"
                 class="custom-text-input"
                 flat
-                @update:model-value="updateMatchField('secondMatch', 'rightTeamName', $event)"
               ></v-text-field>
 
+              <div v-if="store.matches.secondMatch.rightTeamLogo" class="image-preview-container">
+                <div class="image-preview-wrapper">
+                  <img
+                    :src="imagePreviews.secondMatch.rightTeamLogo.imageDataUrl"
+                    alt="Logo Preview"
+                    class="tiny-image-preview"
+                  />
+                  <span class="image-preview-label">Selected Flag:</span>
+                </div>
+              </div>
+
               <v-text-field
+                v-model="secondMatchRightLogoFileName"
                 label="Right Team Logo"
-                :model-value="secondMatchRightLogoFileName"
                 readonly
                 hide-details="auto"
                 class="custom-text-input"
                 flat
-                @click="selectImageViaElectron('secondMatch', 'rightTeamLogo')"
+                @click="selectImageFile('secondMatch', 'rightTeamLogo')"
               >
                 <template #append-inner>
                   <v-btn
@@ -392,7 +422,7 @@ onUnmounted(() => {
                     text
                     class="add-button-file"
                     :ripple="false"
-                    @click.stop="selectImageViaElectron('secondMatch', 'rightTeamLogo')"
+                    @click.stop="selectImageFile('secondMatch', 'rightTeamLogo')"
                     >+ ADD</v-btn
                   >
                   <v-btn
@@ -406,14 +436,24 @@ onUnmounted(() => {
                 </template>
               </v-text-field>
 
+              <div v-if="store.matches.secondMatch.rightTeamFlag" class="image-preview-container">
+                <div class="image-preview-wrapper">
+                  <img
+                    :src="imagePreviews.secondMatch.rightTeamFlag.imageDataUrl"
+                    alt="Flag Preview"
+                    class="tiny-image-preview"
+                  />
+                  <span class="image-preview-label">Selected Flag:</span>
+                </div>
+              </div>
               <v-text-field
+                v-model="secondMatchRightFlagFileName"
                 label="Right Team Flag"
-                :model-value="secondMatchRightFlagFileName"
                 readonly
                 hide-details="auto"
                 class="custom-text-input"
                 flat
-                @click="selectImageViaElectron('secondMatch', 'rightTeamFlag')"
+                @click="selectImageFile('secondMatch', 'rightTeamFlag')"
               >
                 <template #append-inner>
                   <v-btn
@@ -422,7 +462,7 @@ onUnmounted(() => {
                     text
                     class="add-button-file"
                     :ripple="false"
-                    @click.stop="selectImageViaElectron('secondMatch', 'rightTeamFlag')"
+                    @click.stop="selectImageFile('secondMatch', 'rightTeamFlag')"
                     >+ ADD</v-btn
                   >
                   <v-btn
@@ -444,6 +484,34 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+.image-preview-container {
+  margin-bottom: 8px;
+}
+
+.image-preview-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background-color: rgb(var(--v-theme-input-background));
+  border: 1px solid rgb(var(--v-theme-input-border));
+  border-radius: 4px;
+}
+
+.tiny-image-preview {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid rgb(var(--v-theme-input-border));
+}
+
+.image-preview-label {
+  font-size: 12px;
+  color: rgb(var(--v-theme-input-label));
+  font-weight: 500;
+}
+
 .matches-container {
   color: rgb(var(--v-theme-on-surface));
   padding: 8px;

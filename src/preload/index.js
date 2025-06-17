@@ -9,13 +9,19 @@ contextBridge.exposeInMainWorld('electronLogger', {
 const api = {
   openFileDialog: (type) => ipcRenderer.invoke('open-file-dialog', type),
   createFile: (filePath, content) => ipcRenderer.invoke('create-file', filePath, content),
+  readImage: (imagePath) => ipcRenderer.invoke('read-image', imagePath),
   selectDirectory: () => ipcRenderer.invoke('select-directory'),
   getDefaultPath: () => ipcRenderer.invoke('get-default-path'),
   getAppVersion: () => ipcRenderer.invoke('app-version'),
   checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
   downloadUpdate: () => ipcRenderer.send('download-update'),
   onUpdateStatus: (callback) =>
-    ipcRenderer.on('update-status', (_event, ...args) => callback(...args))
+    ipcRenderer.on('update-status', (_event, ...args) => callback(...args)),
+  store: {
+    get: (key) => ipcRenderer.invoke('electron-store-get', key),
+    set: (key, val) => ipcRenderer.invoke('electron-store-set', key, val),
+    delete: (key) => ipcRenderer.invoke('electron-store-delete', key)
+  }
 }
 
 if (process.contextIsolated) {

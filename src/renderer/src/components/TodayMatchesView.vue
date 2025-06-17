@@ -1,17 +1,10 @@
 <script setup>
-import { computed, ref } from 'vue'
 import TodayPanels from './TodayPanels.vue'
 import { useAppStateStore } from '../store/appState'
+import { useNotifications } from '../composables/notifiy'
 
-const showSuccess = ref(false)
-const showError = ref(false)
-const errorMsg = ref('')
-
+const { showSuccess, showError, errorMsg, triggerSuccess, triggerError } = useNotifications()
 const store = useAppStateStore()
-const matches = computed({
-  get: () => store.matches,
-  set: (value) => (store.matches = value)
-})
 
 const clearMatchesData = () => {
   store.matches = {
@@ -37,28 +30,21 @@ const clearMatchesData = () => {
   }
 }
 
-const updateMatches = (updatedMatches) => {
-  store.matches = { ...updatedMatches }
-}
-
 const createMatchsJson = async () => {
   const jsonData = JSON.stringify(store.matches, null, 2)
   try {
     const created = await window.api.createFile(
-      `${store.jsonSavePath}/todaysmatches.json`,
+      `${store.jsonSavePath}/Todaysmatches.json`,
       jsonData
     )
-
     if (created) {
-      showSuccess.value = true
+      triggerSuccess()
     } else {
-      errorMsg.value = 'Could not write file'
-      showError.value = true
+      triggerError('Could not write file')
     }
   } catch (e) {
-    errorMsg.value = e.message || 'Unknown error'
-    showError.value = true
-    console.error('Failed to create BracketsView.json:', e)
+    triggerError(e.message || 'Unknown error')
+    console.error('Failed to create Todaysmatches.json:', e)
   }
 }
 </script>
@@ -73,7 +59,7 @@ const createMatchsJson = async () => {
       <v-btn color="red" class="mb-4" @click="clearMatchesData">Clear Matches Data</v-btn>
     </div>
     <div class="content">
-      <TodayPanels :matches="matches" @update:matches="updateMatches" />
+      <TodayPanels />
       <v-snackbar v-model="showSuccess" :timeout="4000" top color="success">
         Today's Matches's File created successfully!
       </v-snackbar>

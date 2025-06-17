@@ -1,23 +1,12 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import TeamRow from './TeamRow.vue'
 import { useAppStateStore } from '../store/appState'
+import { useNotifications } from '../composables/notifiy'
 
-const showSuccess = ref(false)
-const showError = ref(false)
-const errorMsg = ref('')
-
+const { showSuccess, showError, errorMsg, triggerSuccess, triggerError } = useNotifications()
 const store = useAppStateStore()
-const teams = computed({
-  get: () => store.teams,
-  set: (value) => (store.teams = value)
-})
-
-const updateTeam = (updatedTeam) => {
-  if (store.teams[updatedTeam.id]) {
-    store.teams[updatedTeam.id] = updatedTeam
-  }
-}
+const teams = computed(() => store.teams)
 
 const transformTeamsForOutput = () => {
   const outputObject = {}
@@ -31,41 +20,24 @@ const transformTeamsForOutput = () => {
   return outputObject
 }
 
+const clearTeamsData = () => {
+  store.clearTeams()
+  console.log('Cleared teams data')
+}
 const createBracketsJson = async () => {
   const transformedData = transformTeamsForOutput()
   const jsonData = JSON.stringify(transformedData, null, 2)
   try {
     const created = await window.api.createFile(`${store.jsonSavePath}/BracketsView.json`, jsonData)
     if (created) {
-      showSuccess.value = true
+      triggerSuccess()
     } else {
-      errorMsg.value = 'Could not write file'
-      showError.value = true
+      triggerError('Could not write file')
     }
   } catch (e) {
-    errorMsg.value = e.message || 'Unknown error'
-    showError.value = true
+    triggerError(e.message || 'Unknown error')
     console.error('Failed to create BracketsView.json:', e)
   }
-}
-
-const clearTeamsData = () => {
-  store.teams = initializeTeams()
-  console.log('Cleared teams data')
-}
-
-function initializeTeams() {
-  const initialTeamsObject = {}
-  for (let i = 1; i < 33; i++) {
-    initialTeamsObject[i] = {
-      id: i,
-      teamImage: '',
-      flagImage: '',
-      teamName: '',
-      score: 0
-    }
-  }
-  return initialTeamsObject
 }
 </script>
 
@@ -79,12 +51,7 @@ function initializeTeams() {
       <v-btn color="red" class="mb-4" @click="clearTeamsData">Clear Teams Data</v-btn>
     </div>
     <div class="content">
-      <TeamRow
-        v-for="team in Object.values(teams)"
-        :key="team.id"
-        :team="team"
-        @update-team="updateTeam"
-      />
+      <TeamRow v-for="team in Object.values(teams)" :key="team.id" :team="team" />
       <v-snackbar v-model="showSuccess" :timeout="4000" top color="success">
         Brackets File created successfully!
       </v-snackbar>

@@ -1,18 +1,34 @@
 <script setup>
+import { onMounted } from 'vue'
 import { useAppStateStore } from '../store/appState'
+import { useImagePreview } from '../composables/imagePreview'
 
 const store = useAppStateStore()
+const { imageDataUrl, loadImagePreview } = useImagePreview()
 
 const selectImageFile = async () => {
   const result = await window.api.openFileDialog('image')
   if (result && result.path) {
     store.players.heroImage = result.path
+    await loadImagePreview(result.path)
   }
 }
 
 const handleClearHeroImage = () => {
   store.players.heroImage = ''
+  imageDataUrl.value = ''
 }
+
+const handleImageError = (event) => {
+  console.error('Failed to load image:', event.target.src)
+  imageDataUrl.value = ''
+}
+
+onMounted(async () => {
+  if (store.players.heroImage) {
+    await loadImagePreview(store.players.heroImage)
+  }
+})
 </script>
 
 <template>
@@ -65,6 +81,24 @@ const handleClearHeroImage = () => {
               flat
             ></v-text-field>
           </v-col>
+
+          <!-- Image Preview Section -->
+          <v-col
+            v-if="store.players.heroImage && imageDataUrl"
+            cols="12"
+            class="pa-1 image-preview-container"
+          >
+            <div class="image-preview-wrapper">
+              <img
+                :src="imageDataUrl"
+                alt="Hero Image Preview"
+                class="tiny-image-preview"
+                @error="handleImageError"
+              />
+              <span class="image-preview-label">Selected Image:</span>
+            </div>
+          </v-col>
+
           <v-col cols="12" class="pa-1 input-spacing">
             <v-text-field
               :model-value="store.players.heroImage.split(/[\\/]/).pop() || ''"
@@ -142,26 +176,23 @@ const handleClearHeroImage = () => {
 
 <style scoped>
 .player-stats-panel-container {
-  color: rgb(var(--v-theme-on-surface)); /* Changed from #ffffff */
+  color: rgb(var(--v-theme-on-surface));
   padding: 8px;
 }
 
 .panel-row {
-  background-color: transparent; /* Or inherit. Container above sets surface. Was #1e2a38 */
+  background-color: transparent;
   margin-bottom: 16px;
 }
 
 .player-stats-panel {
-  /* This was already using a variable, which is great! */
-  /* Ensure --v-theme-input-border is defined in your Vuetify theme settings for both light and dark. */
-  background-color: rgb(var(--v-theme-surface)); /* Added to ensure panel bg is surface */
-  /* If this v-card, it might pick up surface automatically, but explicit can be good */
+  background-color: rgb(var(--v-theme-surface));
 }
 
 .panel-title {
   font-size: 16px;
   font-weight: bold;
-  color: rgb(var(--v-theme-on-surface)); /* Changed from #ffffff */
+  color: rgb(var(--v-theme-on-surface));
   padding: 8px 0;
   text-transform: uppercase;
 }
@@ -174,8 +205,36 @@ const handleClearHeroImage = () => {
   margin-bottom: 0;
 }
 
-/* --- Custom Input Field Styles Themed --- */
+/* Image Preview Styles */
+.image-preview-container {
+  margin-bottom: 8px;
+}
 
+.image-preview-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background-color: rgb(var(--v-theme-input-background));
+  border: 1px solid rgb(var(--v-theme-input-border));
+  border-radius: 4px;
+}
+
+.tiny-image-preview {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid rgb(var(--v-theme-input-border));
+}
+
+.image-preview-label {
+  font-size: 12px;
+  color: rgb(var(--v-theme-input-label));
+  font-weight: 500;
+}
+
+/* Custom Input Field Styles Themed */
 .custom-file-input,
 .custom-text-input {
   border-radius: 4px;
@@ -184,15 +243,13 @@ const handleClearHeroImage = () => {
   max-width: 100%;
 }
 
-/* Background of the input field area */
 .custom-file-input .v-field__overlay,
 .custom-text-input .v-field__overlay,
-.custom-file-input .v-field__field, /* v-field__field is the direct container for input */
+.custom-file-input .v-field__field,
 .custom-text-input .v-field__field {
-  background-color: rgb(var(--v-theme-input-background)) !important; /* Changed from #2c3e50 */
+  background-color: rgb(var(--v-theme-input-background)) !important;
 }
 
-/* Overall control styling, including border */
 .custom-file-input .v-input__control,
 .custom-text-input .v-input__control {
   background-color: rgb(var(--v-theme-input-background)) !important;
@@ -200,54 +257,46 @@ const handleClearHeroImage = () => {
   box-shadow: none !important;
   border-radius: 4px !important;
   min-height: 48px !important;
-  padding: 0 12px; /* This padding is for the control, not the text input itself */
+  padding: 0 12px;
   width: 100%;
   max-width: 100%;
 }
 
-/* Input Label */
 .custom-file-input .v-label,
 .custom-text-input .v-label {
-  color: rgb(var(--v-theme-input-label)) !important; /* Changed from #ffffff */
+  color: rgb(var(--v-theme-input-label)) !important;
   font-size: 14px !important;
   font-weight: bold;
-  opacity: 1 !important; /* Or adjust for standard/focused states if needed */
+  opacity: 1 !important;
   transform: translateY(-50%) scale(1) !important;
   top: 50% !important;
   left: 12px !important;
   pointer-events: none;
 }
 
-/* Input Text Color */
-.custom-file-input .v-field__input, /* Actual <input> or text display element */
+.custom-file-input .v-field__input,
 .custom-text-input .v-field__input {
-  color: rgb(var(--v-theme-input-text)) !important; /* Changed from #ffffff */
+  color: rgb(var(--v-theme-input-text)) !important;
 }
 
-/* Input Placeholder Text Color */
 .custom-file-input .v-field__input::placeholder,
 .custom-text-input .v-field__input::placeholder {
-  color: rgba(
-    var(--v-theme-input-text),
-    0.7
-  ) !important; /* Slightly muted version of input-text. Was #ffffff */
-  opacity: 1 !important; /* opacity is part of rgba now */
+  color: rgba(var(--v-theme-input-text), 0.7) !important;
+  opacity: 1 !important;
 }
 
-/* Text for v-file-input when a file is selected */
 .custom-file-input .v-file-input__text {
-  color: rgb(var(--v-theme-input-text)); /* Changed from #ffffff */
-  padding-right: 50px; /* Keep structural */
+  color: rgb(var(--v-theme-input-text));
+  padding-right: 50px;
 }
 
-/* Fallback for direct input elements if any, though .v-field__input is preferred target */
 .custom-text-input input {
-  color: rgb(var(--v-theme-input-text)); /* Changed from #ffffff */
-  padding-right: 40px; /* Keep structural */
+  color: rgb(var(--v-theme-input-text));
+  padding-right: 40px;
 }
 
 .add-button-file {
-  color: rgb(var(--v-theme-primary)) !important; /* Changed from #00c853 */
+  color: rgb(var(--v-theme-primary)) !important;
   font-weight: bold;
   text-transform: uppercase;
   font-size: 12px;
@@ -255,28 +304,21 @@ const handleClearHeroImage = () => {
   min-width: auto;
   height: 100%;
   border-radius: 0 4px 4px 0;
-  /* Background: consider making it transparent or a subtle shade of input-background */
-  background-color: transparent; /* Was #2c3e50. Let the icon color carry the primary action feel */
-  /* Or if you want a bg: background-color: rgba(var(--v-theme-primary), 0.1); */
+  background-color: transparent;
   position: absolute;
   right: 0;
   top: 0;
   transition: all 0.1s ease;
 }
 
-/* Icons inside inputs (e.g., pencil, clear) */
 .custom-text-input .v-input__append-inner .v-icon,
 .custom-file-input .v-input__append-inner .v-icon {
-  /* Target clear button icon if it's in append-inner */
-  color: rgb(
-    var(--v-theme-input-label)
-  ) !important; /* Or input-text, depending on desired prominence. Was #ffffff */
-  font-size: 18px !important; /* Keep structural */
-  margin-right: 8px; /* Keep structural */
-  transition: all 0.1s ease; /* Keep structural */
+  color: rgb(var(--v-theme-input-label)) !important;
+  font-size: 18px !important;
+  margin-right: 8px;
+  transition: all 0.1s ease;
 }
 
-/* Ensure no extra padding from Vuetify's default slots */
 .custom-file-input .v-input__prepend-inner,
 .custom-file-input .v-input__append-inner,
 .custom-text-input .v-input__prepend-inner,
@@ -285,7 +327,6 @@ const handleClearHeroImage = () => {
   margin: 0;
 }
 
-/* Ensure input text area itself has no extra padding reducing visible area */
 .custom-text-input .v-field__input,
 .custom-file-input .v-field__input {
   padding-top: 0 !important;
@@ -294,22 +335,18 @@ const handleClearHeroImage = () => {
   min-height: auto !important;
 }
 
-/* Hide default Vuetify outline if you're managing borders fully */
 .custom-file-input .v-field__outline,
 .custom-text-input .v-field__outline {
   display: none !important;
 }
 
-/* The v-field__field itself should not have padding if custom control manages it */
 .custom-file-input .v-field__field,
 .custom-text-input .v-field__field {
   padding: 0 !important;
 }
 
-/* Label positioning (structural, keep as is) */
 .custom-file-input:not(.v-input--is-dirty) .v-label,
 .custom-text-input .v-label {
-  /* This rule seems to duplicate the one above, but for non-dirty state */
   left: 12px !important;
   transform: translateY(-50%) scale(1) !important;
   top: 50% !important;

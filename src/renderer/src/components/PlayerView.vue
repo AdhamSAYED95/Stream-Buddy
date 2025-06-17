@@ -1,12 +1,9 @@
 <script setup>
-import { ref } from 'vue'
 import PlayerRow from './PlayerRow.vue'
 import { useAppStateStore } from '../store/appState'
+import { useNotifications } from '../composables/notifiy'
 
-const showSuccess = ref(false)
-const showError = ref(false)
-const errorMsg = ref('')
-
+const { showSuccess, showError, errorMsg, triggerSuccess, triggerError } = useNotifications()
 const store = useAppStateStore()
 
 const clearPlayerData = () => {
@@ -28,15 +25,13 @@ const createPlayerJson = async () => {
   try {
     const created = await window.api.createFile(`${store.jsonSavePath}/PlayersStats.json`, jsonData)
     if (created) {
-      showSuccess.value = true
+      triggerSuccess()
     } else {
-      errorMsg.value = 'Could not write file'
-      showError.value = true
+      triggerError('Could not write file')
     }
   } catch (e) {
-    errorMsg.value = e.message || 'Unknown error'
-    showError.value = true
-    console.error('Failed to create BracketsView.json:', e)
+    triggerError(e.message || 'Unknown error')
+    console.error('Failed to create PlayersStats.json:', e)
   }
 }
 </script>

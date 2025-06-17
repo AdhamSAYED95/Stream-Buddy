@@ -23,7 +23,6 @@ const store = useAppStateStore()
               </v-list-item>
             </RouterLink>
           </template>
-          <!-- Settings item pushed to the bottom -->
           <RouterLink to="/Settings" class="nav-link settings-link">
             <v-list-item prepend-icon="mdi-cog">
               <v-list-item-title>Settings</v-list-item-title>
@@ -60,7 +59,6 @@ const store = useAppStateStore()
   background-color: rgb(var(--v-theme-hover-item)) !important;
 }
 
-/* Style for the active route link */
 .nav-link.router-link-active .v-list-item {
   background-color: rgb(var(--v-theme-active-item-bg)) !important;
 }
@@ -70,7 +68,6 @@ const store = useAppStateStore()
   color: rgb(var(--v-theme-active-item)) !important;
 }
 
-/* Make the v-list a flex container to push Settings to the bottom */
 .nav-list {
   display: flex;
   flex-direction: column;
@@ -78,7 +75,6 @@ const store = useAppStateStore()
   overflow-y: auto;
 }
 
-/* Push the Settings item to the bottom */
 .settings-link {
   margin-top: auto;
 }

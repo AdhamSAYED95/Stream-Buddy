@@ -11,7 +11,6 @@ const presetToUpdateName = ref('')
 const showSnackbar = ref(false)
 const snackbarText = ref('')
 const snackbarColor = ref('success')
-
 const confirmUpdateOrCreateDialog = ref(false)
 
 const presetNameRules = [

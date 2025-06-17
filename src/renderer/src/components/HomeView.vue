@@ -12,7 +12,7 @@
   justify-content: center;
   align-items: center;
   min-height: 100%;
-  color: rgb(var(--v-theme-on-surface)); /* Changed from #ffffff */
+  color: rgb(var(--v-theme-on-surface));
   padding: 8px;
 }
 

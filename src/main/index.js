@@ -6,6 +6,7 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import log from 'electron-log'
 import { autoUpdater } from 'electron-updater'
+const Store = require('electron-store').default
 
 log.transports.file.format = '[{y}-{m}-{d} {h}:{i}:{s}.{ms}] [{level}] {text}'
 
@@ -19,6 +20,9 @@ process.on('uncaughtException', (error) => {
 process.on('unhandledRejection', (reason, promise) => {
   log.error('Unhandled Main Process Rejection:', reason)
 })
+
+const store = new Store()
+console.log(`Electron-store path: ${store.path}`)
 
 autoUpdater.autoDownload = false
 
@@ -67,6 +71,16 @@ function createWindow() {
   }
 }
 
+ipcMain.handle('electron-store-get', async (event, key) => {
+  return store.get(key)
+})
+ipcMain.handle('electron-store-set', async (event, key, val) => {
+  store.set(key, val)
+})
+ipcMain.handle('electron-store-delete', async (event, key) => {
+  store.delete(key)
+})
+
 ipcMain.handle('app-version', () => {
   return app.getVersion()
 })
@@ -106,6 +120,36 @@ ipcMain.handle('create-file', async (event, filePath, content) => {
     console.error('Failed to write file:', err)
     log.error('Failed to write file:', err)
     return false
+  }
+})
+
+ipcMain.handle('read-image', async (event, imagePath) => {
+  try {
+    const imageBuffer = await fs.readFile(imagePath)
+    const ext = path.extname(imagePath).toLowerCase()
+
+    let mimeType = 'image/png'
+    switch (ext) {
+      case '.jpg':
+      case '.jpeg':
+        mimeType = 'image/jpeg'
+        break
+      case '.png':
+        mimeType = 'image/png'
+        break
+      case '.gif':
+        mimeType = 'image/gif'
+        break
+      case '.webp':
+        mimeType = 'image/webp'
+        break
+    }
+
+    const base64String = imageBuffer.toString('base64')
+    return `data:${mimeType};base64,${base64String}`
+  } catch (error) {
+    log.error('Failed to read image file:', error)
+    throw error
   }
 })
 
@@ -151,14 +195,15 @@ autoUpdater.on('update-available', (info) => {
   log.info(`Update available: ${info.version}`)
 
   if (updateTriggeredByAutoCheck) {
+    const plainReleaseNotes = info.releaseNotes
+      ? info.releaseNotes.replace(/<p>/g, '\n').replace(/<\/p>/g, '').trim()
+      : 'No release notes provided.'
     dialog
       .showMessageBox(mainWindow, {
         type: 'info',
         title: 'Update Available',
         message: `A new version ${info.version} is available.`,
-        detail: info.releaseNotes
-          ? `What's New:\n\n${info.releaseNotes}`
-          : 'No release notes provided.',
+        detail: `What's New:\n\n${plainReleaseNotes}`,
         buttons: ['Update Now', 'Later'],
         defaultId: 0,
         cancelId: 1

@@ -23,6 +23,7 @@
     "@electron-toolkit/utils": "^4.0.0",
     "@mdi/font": "^7.4.47",
     "electron-log": "^5.4.0",
+    "electron-store": "^10.1.0",
     "electron-updater": "^6.3.9",
     "pinia": "^3.0.2",
     "pinia-plugin-persistedstate": "^4.3.0",

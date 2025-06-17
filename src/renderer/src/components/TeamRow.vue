@@ -1,7 +1,7 @@
 <script setup>
-import { ref, watch } from 'vue'
-
-const emit = defineEmits(['update-team'])
+import { onMounted } from 'vue'
+import { useAppStateStore } from '../store/appState'
+import { useImagePreview } from '../composables/imagePreview'
 
 const props = defineProps({
   team: {
@@ -10,82 +10,65 @@ const props = defineProps({
   }
 })
 
-const imageFilePath = ref(props.team.teamImage || '')
-const flagFilePath = ref(props.team.flagImage || '')
+const store = useAppStateStore()
+const { imageDataUrl: teamImageDataUrl, loadImagePreview: loadTeamImagePreview } = useImagePreview()
+const { imageDataUrl: flagImageDataUrl, loadImagePreview: loadFlagImagePreview } = useImagePreview()
 
 const selectImageFile = async (type) => {
   const result = await window.api.openFileDialog(type)
-  if (!result) return
+  if (!result || !result.path) return
 
   const { path } = result
-
   if (type === 'image') {
-    imageFilePath.value = path
-    const updatedTeam = {
-      ...props.team,
-      teamImage: path
-    }
-    emit('update-team', updatedTeam)
-  } else if (type === 'flag') {
-    flagFilePath.value = path
-    const updatedTeam = {
-      ...props.team,
-      flagImage: path
-    }
-    emit('update-team', updatedTeam)
+    store.updateTeam(props.team.id, { teamImage: path })
+    await loadTeamImagePreview(path)
+  } else {
+    store.updateTeam(props.team.id, { flagImage: path })
+    await loadFlagImagePreview(path)
   }
 }
 
 const handleClearImage = () => {
-  imageFilePath.value = ''
-  const updatedTeam = {
-    ...props.team,
-    teamImage: ''
-  }
-  emit('update-team', updatedTeam)
+  store.updateTeam(props.team.id, { teamImage: '' })
+  teamImageDataUrl.value = ''
 }
 
 const handleClearFlag = () => {
-  flagFilePath.value = ''
-  const updatedTeam = {
-    ...props.team,
-    flagImage: ''
-  }
-  emit('update-team', updatedTeam)
+  store.updateTeam(props.team.id, { flagImage: '' })
+  flagImageDataUrl.value = ''
 }
 
 const handleNameChange = (value) => {
-  const updatedTeam = {
-    ...props.team,
-    teamName: value
-  }
-  emit('update-team', updatedTeam)
+  store.updateTeam(props.team.id, { teamName: value })
 }
 
 const handleScoreChange = (value) => {
-  const updatedTeam = {
-    ...props.team,
-    score: Number(value)
-  }
-  emit('update-team', updatedTeam)
+  store.updateTeam(props.team.id, { score: Number(value) || 0 })
 }
 
-watch(
-  () => props.team,
-  (newTeam) => {
-    imageFilePath.value = newTeam.teamImage || ''
-    flagFilePath.value = newTeam.flagImage || ''
-  },
-  { deep: true }
-)
+onMounted(async () => {
+  if (props.team.teamImage) {
+    await loadTeamImagePreview(props.team.teamImage)
+  }
+  if (props.team.flagImage) {
+    await loadFlagImagePreview(props.team.flagImage)
+  }
+})
 </script>
 
 <template>
   <div class="team-row-container">
     <v-row align="center" no-gutters class="team-row">
+      <!-- Team Image Section -->
       <v-col cols="3" class="pa-1">
+        <div v-if="props.team.teamImage && teamImageDataUrl" class="image-preview-container">
+          <div class="image-preview-wrapper">
+            <img :src="teamImageDataUrl" alt="Team Image Preview" class="tiny-image-preview" />
+            <span class="image-preview-label">Team Image:</span>
+          </div>
+        </div>
         <v-text-field
-          :model-value="imageFilePath.split(/[\\/]/).pop() || ''"
+          :model-value="props.team.teamImage.split(/[\\/]/).pop() || ''"
           label="Team Image"
           readonly
           hide-details="auto"
@@ -93,9 +76,9 @@ watch(
           flat
           @click="selectImageFile('image')"
         >
-          <template v-slot:append-inner>
+          <template #append-inner>
             <v-btn
-              v-if="!imageFilePath"
+              v-if="!props.team.teamImage"
               small
               text
               class="add-button-file"
@@ -105,7 +88,7 @@ watch(
               + ADD
             </v-btn>
             <v-btn
-              v-if="imageFilePath"
+              v-if="props.team.teamImage"
               small
               icon
               class="clear-button"
@@ -116,9 +99,16 @@ watch(
           </template>
         </v-text-field>
       </v-col>
+      <!-- Flag Image Section -->
       <v-col cols="3" class="pa-1">
+        <div v-if="props.team.flagImage && flagImageDataUrl" class="image-preview-container">
+          <div class="image-preview-wrapper">
+            <img :src="flagImageDataUrl" alt="Flag Image Preview" class="tiny-image-preview" />
+            <span class="image-preview-label">Flag Image:</span>
+          </div>
+        </div>
         <v-text-field
-          :model-value="flagFilePath.split(/[\\/]/).pop() || ''"
+          :model-value="props.team.flagImage.split(/[\\/]/).pop() || ''"
           label="Flag Image"
           readonly
           hide-details="auto"
@@ -126,9 +116,9 @@ watch(
           flat
           @click="selectImageFile('flag')"
         >
-          <template v-slot:append-inner>
+          <template #append-inner>
             <v-btn
-              v-if="!flagFilePath"
+              v-if="!props.team.flagImage"
               small
               text
               class="add-button-file"
@@ -138,7 +128,7 @@ watch(
               + ADD
             </v-btn>
             <v-btn
-              v-if="flagFilePath"
+              v-if="props.team.flagImage"
               small
               icon
               class="clear-button"
@@ -149,6 +139,7 @@ watch(
           </template>
         </v-text-field>
       </v-col>
+      <!-- Team Name Section -->
       <v-col cols="3" class="pa-1">
         <v-text-field
           label="Team Name"
@@ -160,6 +151,7 @@ watch(
           @update:model-value="handleNameChange"
         />
       </v-col>
+      <!-- Score Section -->
       <v-col cols="3" class="pa-1">
         <v-text-field
           label="Score"
@@ -190,7 +182,6 @@ watch(
   padding: 8px;
 }
 
-.custom-file-input,
 .custom-text-input {
   border-radius: 4px;
   overflow: hidden;
@@ -198,14 +189,11 @@ watch(
   max-width: 100%;
 }
 
-.custom-file-input .v-field__overlay,
 .custom-text-input .v-field__overlay,
-.custom-file-input .v-field__field,
 .custom-text-input .v-field__field {
   background-color: rgb(var(--v-theme-input-background)) !important;
 }
 
-.custom-file-input .v-input__control,
 .custom-text-input .v-input__control {
   background-color: rgb(var(--v-theme-input-background)) !important;
   border: 1px solid rgb(var(--v-theme-input-border)) !important;
@@ -217,7 +205,6 @@ watch(
   max-width: 100%;
 }
 
-.custom-file-input .v-label,
 .custom-text-input .v-label {
   color: rgb(var(--v-theme-input-label)) !important;
   font-size: 14px !important;
@@ -229,25 +216,42 @@ watch(
   pointer-events: none;
 }
 
-.custom-file-input .v-field__input,
+/* Image Preview Styles */
+.image-preview-container {
+  margin-bottom: 4px; /* Slight spacing between image and text field */
+}
+
+.image-preview-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background-color: rgb(var(--v-theme-input-background));
+  border: 1px solid rgb(var(--v-theme-input-border));
+  border-radius: 4px;
+}
+
+.tiny-image-preview {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid rgb(var(--v-theme-input-border));
+}
+
+.image-preview-label {
+  font-size: 12px;
+  color: rgb(var(--v-theme-input-label));
+  font-weight: 500;
+}
+
 .custom-text-input .v-field__input {
   color: rgb(var(--v-theme-input-text)) !important;
 }
 
-.custom-file-input .v-field__input::placeholder,
 .custom-text-input .v-field__input::placeholder {
   color: rgba(var(--v-theme-input-text), 0.7) !important;
   opacity: 1 !important;
-}
-
-.custom-file-input .v-file-input__text {
-  color: rgb(var(--v-theme-input-text));
-  padding-right: 50px;
-}
-
-.custom-text-input input {
-  color: rgb(var(--v-theme-input-text));
-  padding-right: 40px;
 }
 
 .add-button-file {
@@ -273,41 +277,33 @@ watch(
   transform: translateY(-50%);
 }
 
-.custom-text-input .v-input__append-inner .v-icon,
-.custom-file-input .v-input__append-inner .v-icon {
+.custom-text-input .v-input__append-inner .v-icon {
   color: rgb(var(--v-theme-input-label)) !important;
   font-size: 18px !important;
   margin-right: 8px;
   transition: all 0.1s ease;
 }
 
-.custom-file-input .v-input__prepend-inner,
-.custom-file-input .v-input__append-inner,
-.custom-text-input .v-input__prepend-inner,
 .custom-text-input .v-input__append-inner {
   padding: 0;
   margin: 0;
 }
 
-.custom-text-input .v-field__input,
-.custom-file-input .v-field__input {
+.custom-text-input .v-field__input {
   padding-top: 0 !important;
   padding-bottom: 0 !important;
   height: auto !important;
   min-height: auto !important;
 }
 
-.custom-file-input .v-field__outline,
 .custom-text-input .v-field__outline {
   display: none !important;
 }
 
-.custom-file-input .v-field__field,
 .custom-text-input .v-field__field {
   padding: 0 !important;
 }
 
-.custom-file-input:not(.v-input--is-dirty) .v-label,
 .custom-text-input .v-label {
   left: 12px !important;
   transform: translateY(-50%) scale(1) !important;

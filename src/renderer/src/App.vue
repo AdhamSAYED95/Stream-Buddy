@@ -2,12 +2,12 @@
 import { onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useTheme } from 'vuetify'
-import { useAppStateStore, allNavigableViews } from './store/appState' // Adjust import based on your file structure
+import { useAppStateStore, allNavigableViews } from './store/appState'
 import NavigationPanel from './components/NavigationPanel.vue'
 
 const router = useRouter()
 const theme = useTheme()
-const store = useAppStateStore() // Renamed to avoid confusion with Pinia store
+const store = useAppStateStore()
 
 window.addEventListener('error', (event) => {
   if (window.electronLogger) {
