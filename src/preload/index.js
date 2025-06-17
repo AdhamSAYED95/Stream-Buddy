@@ -16,12 +16,7 @@ const api = {
   checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
   downloadUpdate: () => ipcRenderer.send('download-update'),
   onUpdateStatus: (callback) =>
-    ipcRenderer.on('update-status', (_event, ...args) => callback(...args)),
-  store: {
-    get: (key) => ipcRenderer.invoke('electron-store-get', key),
-    set: (key, val) => ipcRenderer.invoke('electron-store-set', key, val),
-    delete: (key) => ipcRenderer.invoke('electron-store-delete', key)
-  }
+    ipcRenderer.on('update-status', (_event, ...args) => callback(...args))
 }
 
 if (process.contextIsolated) {

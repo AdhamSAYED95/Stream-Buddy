@@ -6,7 +6,6 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import log from 'electron-log'
 import { autoUpdater } from 'electron-updater'
-const Store = require('electron-store').default
 
 log.transports.file.format = '[{y}-{m}-{d} {h}:{i}:{s}.{ms}] [{level}] {text}'
 
@@ -20,9 +19,6 @@ process.on('uncaughtException', (error) => {
 process.on('unhandledRejection', (reason, promise) => {
   log.error('Unhandled Main Process Rejection:', reason)
 })
-
-const store = new Store()
-console.log(`Electron-store path: ${store.path}`)
 
 autoUpdater.autoDownload = false
 
@@ -70,16 +66,6 @@ function createWindow() {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
 }
-
-ipcMain.handle('electron-store-get', async (event, key) => {
-  return store.get(key)
-})
-ipcMain.handle('electron-store-set', async (event, key, val) => {
-  store.set(key, val)
-})
-ipcMain.handle('electron-store-delete', async (event, key) => {
-  store.delete(key)
-})
 
 ipcMain.handle('app-version', () => {
   return app.getVersion()
