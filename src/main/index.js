@@ -196,7 +196,13 @@ autoUpdater.on('update-available', (info) => {
       })
       .then((response) => {
         if (response.response === 0) {
-          log.info('User chose to update now, starting download...')
+          dialog.showMessageBox(mainWindow, {
+            type: 'info',
+            title: 'Downloading Update',
+            message: 'The update is being downloaded. Please wait...',
+            detail: 'This window will close automatically when the download is complete.'
+          })
+
           autoUpdater.downloadUpdate()
         }
       })
