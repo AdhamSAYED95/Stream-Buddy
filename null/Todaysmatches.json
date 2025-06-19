@@ -1,0 +1,21 @@
+{
+  "date": "",
+  "firstMatch": {
+    "matchTime": "12:31",
+    "leftTeamName": "",
+    "rightTeamName": "",
+    "leftTeamLogo": "",
+    "rightTeamLogo": "",
+    "leftTeamFlag": "",
+    "rightTeamFlag": ""
+  },
+  "secondMatch": {
+    "matchTime": "",
+    "leftTeamName": "",
+    "rightTeamName": "",
+    "leftTeamLogo": "",
+    "rightTeamLogo": "",
+    "leftTeamFlag": "",
+    "rightTeamFlag": ""
+  }
+}

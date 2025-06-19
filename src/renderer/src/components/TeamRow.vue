@@ -11,6 +11,7 @@ const props = defineProps({
 })
 
 const store = useAppStateStore()
+
 const { imageDataUrl: teamImageDataUrl, loadImagePreview: loadTeamImagePreview } = useImagePreview()
 const { imageDataUrl: flagImageDataUrl, loadImagePreview: loadFlagImagePreview } = useImagePreview()
 

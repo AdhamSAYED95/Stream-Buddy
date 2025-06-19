@@ -7,16 +7,7 @@ const { showSuccess, showError, errorMsg, triggerSuccess, triggerError } = useNo
 const store = useAppStateStore()
 
 const clearPlayerData = () => {
-  store.players = {
-    playerName: '',
-    teamName: '',
-    favouriteWeapon: '',
-    economyScore: 0,
-    heroImage: '',
-    kills: 0,
-    deaths: 0,
-    assists: 0
-  }
+  store.clearPlayers()
 }
 
 const createPlayerJson = async () => {

@@ -23,13 +23,36 @@ const imagePreviews = reactive({
 const selectImageFile = async (matchKey, field) => {
   const result = await window.api.openFileDialog('image')
   if (result && result.path) {
-    store.matches[matchKey][field] = result.path
+    store.updateMatches({
+      [matchKey]: {
+        ...store.matches[matchKey],
+        [field]: result.path
+      }
+    })
     await imagePreviews[matchKey][field].loadImagePreview(result.path)
   }
 }
 
+const updateMatchesData = (matchKey, field, value) => {
+  store.updateMatches({
+    [matchKey]: {
+      ...store.matches[matchKey],
+      [field]: value
+    }
+  })
+}
+
+const updateMatchDate = (field, value) => {
+  store.updateMatches({ [field]: value })
+}
+
 const handleClearImage = (matchKey, field) => {
-  store.matches[matchKey][field] = ''
+  store.updateMatches({
+    [matchKey]: {
+      ...store.matches[matchKey],
+      [field]: ''
+    }
+  })
   imagePreviews[matchKey][field].clearPreview()
 }
 
@@ -69,13 +92,14 @@ onMounted(() => {
         <v-card class="info-panel" flat>
           <v-card-title class="panel-title">INFO</v-card-title>
           <v-text-field
-            v-model="store.matches.date"
+            :model-value="store.matches.date"
             label="Date"
             type="date"
             hide-details="auto"
             class="custom-text-input"
             flat
             max="9999-12-31"
+            @update:model-value="(value) => updateMatchDate('date', value)"
           ></v-text-field>
         </v-card>
       </v-col>
@@ -86,22 +110,26 @@ onMounted(() => {
         <v-card class="match-panel" flat>
           <v-card-title class="panel-title">FIRST MATCH</v-card-title>
           <v-text-field
-            v-model="store.matches.firstMatch.matchTime"
+            :model-value="store.matches.firstMatch.matchTime"
             label="Match Time"
             type="time"
             hide-details="auto"
             class="custom-text-input"
             flat
+            @update:model-value="(value) => updateMatchesData('firstMatch', 'matchTime', value)"
           ></v-text-field>
           <v-row no-gutters>
             <v-col cols="6" class="team-section">
               <v-text-field
-                v-model="store.matches.firstMatch.leftTeamName"
+                :model-value="store.matches.firstMatch.leftTeamName"
                 label="Left Team Name"
                 type="text"
                 hide-details="auto"
                 class="custom-text-input"
                 flat
+                @update:model-value="
+                  (value) => updateMatchesData('firstMatch', 'leftTeamName', value)
+                "
               ></v-text-field>
 
               <div v-if="store.matches.firstMatch.leftTeamLogo" class="image-preview-container">
@@ -115,7 +143,7 @@ onMounted(() => {
                 </div>
               </div>
               <v-text-field
-                v-model="firstMatchLeftLogoFileName"
+                :model-value="firstMatchLeftLogoFileName"
                 label="Left Team Logo"
                 readonly
                 hide-details="auto"
@@ -155,7 +183,7 @@ onMounted(() => {
                 </div>
               </div>
               <v-text-field
-                v-model="firstMatchLeftFlagFileName"
+                :model-value="firstMatchLeftFlagFileName"
                 label="Left Team Flag"
                 readonly
                 hide-details="auto"
@@ -186,12 +214,15 @@ onMounted(() => {
             </v-col>
             <v-col cols="6" class="team-section">
               <v-text-field
-                v-model="store.matches.firstMatch.rightTeamName"
+                :model-value="store.matches.firstMatch.rightTeamName"
                 label="Right Team Name"
                 type="text"
                 hide-details="auto"
                 class="custom-text-input"
                 flat
+                @update:model-value="
+                  (value) => updateMatchesData('firstMatch', 'rightTeamName', value)
+                "
               ></v-text-field>
 
               <div v-if="store.matches.firstMatch.rightTeamLogo" class="image-preview-container">
@@ -205,7 +236,7 @@ onMounted(() => {
                 </div>
               </div>
               <v-text-field
-                v-model="firstMatchRightLogoFileName"
+                :model-value="firstMatchRightLogoFileName"
                 label="Right Team Logo"
                 readonly
                 hide-details="auto"
@@ -246,7 +277,7 @@ onMounted(() => {
               </div>
 
               <v-text-field
-                v-model="firstMatchRightFlagFileName"
+                :model-value="firstMatchRightFlagFileName"
                 label="Right Team Flag"
                 readonly
                 hide-details="auto"
@@ -285,22 +316,26 @@ onMounted(() => {
         <v-card class="match-panel" flat>
           <v-card-title class="panel-title">SECOND MATCH</v-card-title>
           <v-text-field
-            v-model="store.matches.secondMatch.matchTime"
+            :model-value="store.matches.secondMatch.matchTime"
             label="Match Time"
             type="time"
             hide-details="auto"
             class="custom-text-input"
             flat
+            @update:model-value="(value) => updateMatchesData('secondMatch', 'matchTime', value)"
           ></v-text-field>
           <v-row no-gutters>
             <v-col cols="6" class="team-section">
               <v-text-field
-                v-model="store.matches.secondMatch.leftTeamName"
+                :model-value="store.matches.secondMatch.leftTeamName"
                 label="Left Team Name"
                 type="text"
                 hide-details="auto"
                 class="custom-text-input"
                 flat
+                @update:model-value="
+                  (value) => updateMatchesData('secondMatch', 'leftTeamName', value)
+                "
               ></v-text-field>
 
               <div v-if="store.matches.secondMatch.leftTeamLogo" class="image-preview-container">
@@ -315,7 +350,7 @@ onMounted(() => {
               </div>
 
               <v-text-field
-                v-model="secondMatchLeftLogoFileName"
+                :model-value="secondMatchLeftLogoFileName"
                 label="Left Team Logo"
                 readonly
                 hide-details="auto"
@@ -356,7 +391,7 @@ onMounted(() => {
               </div>
 
               <v-text-field
-                v-model="secondMatchLeftFlagFileName"
+                :model-value="secondMatchLeftFlagFileName"
                 label="Left Team Flag"
                 readonly
                 hide-details="auto"
@@ -387,12 +422,15 @@ onMounted(() => {
             </v-col>
             <v-col cols="6" class="team-section">
               <v-text-field
-                v-model="store.matches.secondMatch.rightTeamName"
+                :model-value="store.matches.secondMatch.rightTeamName"
                 label="Right Team Name"
                 type="text"
                 hide-details="auto"
                 class="custom-text-input"
                 flat
+                @update:model-value="
+                  (value) => updateMatchesData('secondMatch', 'rightTeamName', value)
+                "
               ></v-text-field>
 
               <div v-if="store.matches.secondMatch.rightTeamLogo" class="image-preview-container">
@@ -407,7 +445,7 @@ onMounted(() => {
               </div>
 
               <v-text-field
-                v-model="secondMatchRightLogoFileName"
+                :model-value="secondMatchRightLogoFileName"
                 label="Right Team Logo"
                 readonly
                 hide-details="auto"
@@ -447,7 +485,7 @@ onMounted(() => {
                 </div>
               </div>
               <v-text-field
-                v-model="secondMatchRightFlagFileName"
+                :model-value="secondMatchRightFlagFileName"
                 label="Right Team Flag"
                 readonly
                 hide-details="auto"

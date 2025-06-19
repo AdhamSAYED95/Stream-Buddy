@@ -22,7 +22,6 @@ const transformTeamsForOutput = () => {
 
 const clearTeamsData = () => {
   store.clearTeams()
-  console.log('Cleared teams data')
 }
 const createBracketsJson = async () => {
   const transformedData = transformTeamsForOutput()

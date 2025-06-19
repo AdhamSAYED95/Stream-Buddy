@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { ref } from 'vue'
 
 import { useAppStateStore, allNavigableViews } from '../store/appState'
 
@@ -90,18 +90,6 @@ const clearAllData = () => {
   store.clearAllData()
   showFeedback(`All Inputs fields cleared`, 'info')
 }
-
-onMounted(async () => {
-  store.resetUpdateState()
-
-  await store.initializeJsonSavePath()
-
-  await store.getAppVersion()
-
-  window.api.onUpdateStatus((status, info) => {
-    store.setUpdateStatus(status, info)
-  })
-})
 </script>
 
 <template>

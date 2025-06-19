@@ -7,27 +7,7 @@ const { showSuccess, showError, errorMsg, triggerSuccess, triggerError } = useNo
 const store = useAppStateStore()
 
 const clearMatchesData = () => {
-  store.matches = {
-    date: '',
-    firstMatch: {
-      matchTime: '',
-      leftTeamName: '',
-      rightTeamName: '',
-      leftTeamLogo: '',
-      rightTeamLogo: '',
-      leftTeamFlag: '',
-      rightTeamFlag: ''
-    },
-    secondMatch: {
-      matchTime: '',
-      leftTeamName: '',
-      rightTeamName: '',
-      leftTeamLogo: '',
-      rightTeamLogo: '',
-      leftTeamFlag: '',
-      rightTeamFlag: ''
-    }
-  }
+  store.clearMatches()
 }
 
 const createMatchsJson = async () => {

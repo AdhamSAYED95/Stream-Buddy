@@ -6,21 +6,20 @@ import { useImagePreview } from '../composables/imagePreview'
 const store = useAppStateStore()
 const { imageDataUrl, loadImagePreview } = useImagePreview()
 
+const updatePlayerField = (field, value) => {
+  store.updatePlayers({ [field]: value })
+}
+
 const selectImageFile = async () => {
   const result = await window.api.openFileDialog('image')
   if (result && result.path) {
-    store.players.heroImage = result.path
+    updatePlayerField('heroImage', result.path)
     await loadImagePreview(result.path)
   }
 }
 
 const handleClearHeroImage = () => {
-  store.players.heroImage = ''
-  imageDataUrl.value = ''
-}
-
-const handleImageError = (event) => {
-  console.error('Failed to load image:', event.target.src)
+  updatePlayerField('heroImage', '')
   imageDataUrl.value = ''
 }
 
@@ -38,40 +37,43 @@ onMounted(async () => {
         <v-card class="player-stats-panel" flat>
           <v-col cols="12" class="pa-1 input-spacing">
             <v-text-field
-              v-model="store.players.playerName"
+              :model-value="store.players.playerName"
               label="Player Name"
               type="text"
               hide-details="auto"
               class="custom-text-input"
               append-inner-icon="mdi-pencil"
               flat
+              @update:model-value="(value) => updatePlayerField('playerName', value)"
             ></v-text-field>
           </v-col>
           <v-col cols="12" class="pa-1 input-spacing">
             <v-text-field
-              v-model="store.players.teamName"
+              :model-value="store.players.teamName"
               label="Team Name"
               type="text"
               hide-details="auto"
               class="custom-text-input"
               append-inner-icon="mdi-pencil"
               flat
+              @update:model-value="(value) => updatePlayerField('teamName', value)"
             ></v-text-field>
           </v-col>
           <v-col cols="12" class="pa-1 input-spacing">
             <v-text-field
-              v-model="store.players.favouriteWeapon"
+              :model-value="store.players.favouriteWeapon"
               label="Favorite Weapon"
               append-inner-icon="mdi-pencil"
               type="text"
               hide-details="auto"
               class="custom-text-input"
               flat
+              @update:model-value="(value) => updatePlayerField('favouriteWeapon', value)"
             ></v-text-field>
           </v-col>
           <v-col cols="12" class="pa-1 input-spacing">
             <v-text-field
-              v-model.number="store.players.economyScore"
+              :model-value="store.players.economyScore"
               label="Economy Score"
               type="number"
               min="0"
@@ -79,6 +81,7 @@ onMounted(async () => {
               class="custom-text-input"
               append-inner-icon="mdi-pencil"
               flat
+              @update:model-value="(value) => updatePlayerField('economyScore', Number(value))"
             ></v-text-field>
           </v-col>
 
@@ -134,7 +137,7 @@ onMounted(async () => {
           </v-col>
           <v-col cols="12" class="pa-1 input-spacing">
             <v-text-field
-              v-model.number="store.players.kills"
+              :model-value="store.players.kills"
               label="Kills"
               type="number"
               min="0"
@@ -142,11 +145,12 @@ onMounted(async () => {
               class="custom-text-input"
               append-inner-icon="mdi-pencil"
               flat
+              @update:model-value="(value) => updatePlayerField('kills', Number(value))"
             ></v-text-field>
           </v-col>
           <v-col cols="12" class="pa-1 input-spacing">
             <v-text-field
-              v-model.number="store.players.deaths"
+              :model-value="store.players.deaths"
               label="Deaths"
               type="number"
               min="0"
@@ -154,11 +158,12 @@ onMounted(async () => {
               class="custom-text-input"
               append-inner-icon="mdi-pencil"
               flat
+              @update:model-value="(value) => updatePlayerField('deaths', Number(value))"
             ></v-text-field>
           </v-col>
           <v-col cols="12" class="pa-1 input-spacing">
             <v-text-field
-              v-model.number="store.players.assists"
+              :model-value="store.players.assists"
               label="Assists"
               type="number"
               min="0"
@@ -166,6 +171,7 @@ onMounted(async () => {
               class="custom-text-input"
               append-inner-icon="mdi-pencil"
               flat
+              @update:model-value="(value) => updatePlayerField('assists', Number(value))"
             ></v-text-field>
           </v-col>
         </v-card>

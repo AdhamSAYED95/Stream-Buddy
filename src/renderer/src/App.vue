@@ -34,13 +34,24 @@ router.afterEach((to) => {
   localStorage.setItem('lastRoute', to.fullPath)
 })
 
-onMounted(() => {
+onMounted(async () => {
   const lastRoute = localStorage.getItem('lastRoute')
   if (lastRoute && lastRoute !== router.currentRoute.value.fullPath) {
     router.replace(lastRoute)
   }
 
+  store.resetUpdateState()
+
+  await store.initializeStore()
+
+  await store.initializeJsonSavePath()
   store.initializeViewVisibility(allNavigableViews)
+
+  await store.getAppVersion()
+
+  window.api.onUpdateStatus((status, info) => {
+    store.setUpdateStatus(status, info)
+  })
 
   watch(
     () => store.isDarkMode,

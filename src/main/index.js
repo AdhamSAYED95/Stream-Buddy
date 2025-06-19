@@ -7,6 +7,37 @@ import icon from '../../resources/icon.png?asset'
 import log from 'electron-log'
 import { autoUpdater } from 'electron-updater'
 
+import('electron-store').then(({ default: Store }) => {
+  const store = new Store()
+
+  ipcMain.handle('store-get', (event, key) => {
+    return store.get(key)
+  })
+
+  ipcMain.handle('store-set', (event, key, value) => {
+    store.set(key, value)
+    return true
+  })
+
+  ipcMain.handle('store-delete', (event, key) => {
+    store.delete(key)
+    return true
+  })
+
+  ipcMain.handle('store-clear', () => {
+    store.clear()
+    return true
+  })
+
+  ipcMain.handle('store-has', (event, key) => {
+    return store.has(key)
+  })
+
+  ipcMain.handle('store-get-all', () => {
+    return store.store
+  })
+})
+
 log.transports.file.format = '[{y}-{m}-{d} {h}:{i}:{s}.{ms}] [{level}] {text}'
 
 const logPath = join(app.getPath('userData'), 'logs', 'main.log')

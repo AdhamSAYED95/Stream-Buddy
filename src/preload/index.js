@@ -16,7 +16,15 @@ const api = {
   checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
   downloadUpdate: () => ipcRenderer.send('download-update'),
   onUpdateStatus: (callback) =>
-    ipcRenderer.on('update-status', (_event, ...args) => callback(...args))
+    ipcRenderer.on('update-status', (_event, ...args) => callback(...args)),
+  store: {
+    get: (key) => ipcRenderer.invoke('store-get', key),
+    set: (key, value) => ipcRenderer.invoke('store-set', key, value),
+    delete: (key) => ipcRenderer.invoke('store-delete', key),
+    clear: () => ipcRenderer.invoke('store-clear'),
+    has: (key) => ipcRenderer.invoke('store-has', key),
+    getAll: () => ipcRenderer.invoke('store-get-all')
+  }
 }
 
 if (process.contextIsolated) {

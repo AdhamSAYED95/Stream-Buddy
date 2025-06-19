@@ -7,7 +7,7 @@ import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import 'vuetify/styles'
 import '@mdi/font/css/materialdesignicons.css'
 import { createVuetify } from 'vuetify'
-import * as components from 'vuetify/components'
+import { VDateInput } from 'vuetify/labs/VDateInput'
 import * as directives from 'vuetify/directives'
 
 const vuetify = createVuetify({
@@ -78,7 +78,9 @@ const vuetify = createVuetify({
       }
     }
   },
-  components,
+  components: {
+    VDateInput
+  },
   directives,
   icons: {
     defaultSet: 'mdi'
