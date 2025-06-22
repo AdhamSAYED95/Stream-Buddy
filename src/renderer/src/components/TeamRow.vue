@@ -217,9 +217,8 @@ onMounted(async () => {
   pointer-events: none;
 }
 
-/* Image Preview Styles */
 .image-preview-container {
-  margin-bottom: 4px; /* Slight spacing between image and text field */
+  margin-bottom: 4px;
 }
 
 .image-preview-wrapper {

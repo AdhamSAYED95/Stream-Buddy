@@ -185,7 +185,6 @@ const clearAllData = () => {
                   Create New Preset
                 </v-btn>
 
-                <!-- Presets Dropdown -->
                 <v-select
                   v-model="store.selectedPreset"
                   :items="Object.keys(store.viewPresets)"
@@ -242,7 +241,6 @@ const clearAllData = () => {
           </v-col>
         </v-row>
 
-        <!-- Create Preset Dialog -->
         <v-dialog v-model="createPresetDialog" max-width="500px">
           <v-card>
             <v-card-title class="headline">Create New View Preset</v-card-title>
@@ -262,7 +260,6 @@ const clearAllData = () => {
           </v-card>
         </v-dialog>
 
-        <!-- Update Preset Dialog -->
         <v-dialog v-model="updatePresetDialog" max-width="500px">
           <v-card>
             <v-card-title class="headline">Update View Preset</v-card-title>
@@ -299,7 +296,6 @@ const clearAllData = () => {
           </v-card>
         </v-dialog>
 
-        <!-- Snackbar for feedback -->
         <v-snackbar v-model="showSnackbar" :color="snackbarColor" :timeout="3000" bottom right>
           {{ snackbarText }}
           <template #action="{ attrs }">

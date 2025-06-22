@@ -94,11 +94,10 @@ onMounted(() => {
           <v-text-field
             :model-value="store.matches.date"
             label="Date"
-            type="date"
+            type="text"
             hide-details="auto"
             class="custom-text-input"
             flat
-            max="9999-12-31"
             @update:model-value="(value) => updateMatchDate('date', value)"
           ></v-text-field>
         </v-card>
@@ -112,7 +111,7 @@ onMounted(() => {
           <v-text-field
             :model-value="store.matches.firstMatch.matchTime"
             label="Match Time"
-            type="time"
+            type="text"
             hide-details="auto"
             class="custom-text-input"
             flat
@@ -318,7 +317,7 @@ onMounted(() => {
           <v-text-field
             :model-value="store.matches.secondMatch.matchTime"
             label="Match Time"
-            type="time"
+            type="text"
             hide-details="auto"
             class="custom-text-input"
             flat
