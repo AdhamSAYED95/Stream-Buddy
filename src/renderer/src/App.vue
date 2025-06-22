@@ -2,7 +2,8 @@
 import { onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useTheme } from 'vuetify'
-import { useAppStateStore, allNavigableViews } from './store/appState'
+import { useAppStateStore } from './store/appState'
+import { allNavigableViews } from './constants/constants'
 import NavigationPanel from './components/NavigationPanel.vue'
 
 const router = useRouter()
@@ -30,19 +31,23 @@ window.addEventListener('unhandledrejection', (event) => {
   }
 })
 
-router.afterEach((to) => {
-  localStorage.setItem('lastRoute', to.fullPath)
-})
+watch(
+  () => router.currentRoute.value.fullPath,
+  (newPath) => {
+    if (newPath) {
+      store.setLastRoute(newPath)
+    }
+  }
+)
 
 onMounted(async () => {
-  const lastRoute = localStorage.getItem('lastRoute')
-  if (lastRoute && lastRoute !== router.currentRoute.value.fullPath) {
-    router.replace(lastRoute)
-  }
+  await store.initializeStore()
 
   store.resetUpdateState()
 
-  await store.initializeStore()
+  if (store.lastRoute && store.lastRoute !== router.currentRoute.value.fullPath) {
+    router.replace(store.lastRoute)
+  }
 
   await store.initializeJsonSavePath()
   store.initializeViewVisibility(allNavigableViews)

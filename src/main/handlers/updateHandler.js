@@ -14,7 +14,6 @@ export function initializeUpdateHandlers(mainWindow) {
   autoUpdater.autoDownload = false
 
   mainWindow.once('ready-to-show', () => {
-    log.info('Window is ready, triggering automatic update check.')
     updateTriggeredByAutoCheck = true
     updateTriggeredByUser = false
     autoUpdater.checkForUpdates()

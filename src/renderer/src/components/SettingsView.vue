@@ -1,7 +1,8 @@
 <script setup>
 import { ref } from 'vue'
 
-import { useAppStateStore, allNavigableViews } from '../store/appState'
+import { useAppStateStore } from '../store/appState'
+import { allNavigableViews } from '../constants/constants'
 
 const store = useAppStateStore()
 const createPresetDialog = ref(false)

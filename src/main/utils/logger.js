@@ -5,7 +5,6 @@ import log from 'electron-log'
 export function setupLogging() {
   log.transports.file.format = '[{y}-{m}-{d} {h}:{i}:{s}.{ms}] [{level}] {text}'
   const logPath = join(app.getPath('userData'), 'logs', 'main.log')
-  console.log(logPath)
   log.transports.file.resolvePathFn = () => logPath
 
   process.on('uncaughtException', (error) => {

@@ -1,6 +1,7 @@
 <script setup>
 import { RouterLink } from 'vue-router'
-import { useAppStateStore, allNavigableViews } from '../store/appState'
+import { useAppStateStore } from '../store/appState'
+import { allNavigableViews } from '../constants/constants'
 
 const store = useAppStateStore()
 </script>

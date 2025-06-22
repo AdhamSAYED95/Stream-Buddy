@@ -7,7 +7,7 @@ const { showSuccess, showError, errorMsg, triggerSuccess, triggerError } = useNo
 const store = useAppStateStore()
 
 const clearMatchesData = () => {
-  store.clearMatches()
+  store.clearData('matches')
 }
 
 const createMatchsJson = async () => {

@@ -1,15 +1,10 @@
 import { defineStore } from 'pinia'
-
-export const allNavigableViews = [
-  { name: 'TeamsView', title: 'Brackets View', icon: 'mdi-tournament', path: '/TeamsView' },
-  { name: 'PlayerStats', title: 'Players Stats', icon: 'mdi-account-star', path: '/PlayerStats' },
-  {
-    name: 'TodayMatches',
-    title: "Today's Matches",
-    icon: 'mdi-calendar-today',
-    path: '/TodayMatches'
-  }
-]
+import {
+  createInitialMatchState,
+  createInitialPlayerState,
+  initializeTeams,
+  allNavigableViews
+} from '../constants/constants'
 
 export const useAppStateStore = defineStore('appState', {
   state: () => ({
@@ -19,12 +14,14 @@ export const useAppStateStore = defineStore('appState', {
     isDarkMode: false,
     isNavigationMini: true,
     jsonSavePath: null,
+    lastRoute: '/',
     viewVisibility: {},
     viewPresets: {},
     selectedPreset: null,
     appVersion: '',
     updateStatus: '',
-    releaseInfo: null
+    releaseInfo: null,
+    _isInitialized: false
   }),
   actions: {
     async initializeStore() {
@@ -33,18 +30,30 @@ export const useAppStateStore = defineStore('appState', {
       try {
         const storedData = await window.api.store.getAll()
 
-        if (storedData.players) this.players = { ...this.players, ...storedData.players }
-        if (storedData.teams) this.teams = { ...this.teams, ...storedData.teams }
-        if (storedData.matches) this.matches = { ...this.matches, ...storedData.matches }
-        if (typeof storedData.isDarkMode === 'boolean') this.isDarkMode = storedData.isDarkMode
-        if (typeof storedData.isNavigationMini === 'boolean')
-          this.isNavigationMini = storedData.isNavigationMini
-        if (storedData.jsonSavePath) this.jsonSavePath = storedData.jsonSavePath
-        if (storedData.viewVisibility) this.viewVisibility = { ...storedData.viewVisibility }
-        if (storedData.viewPresets) this.viewPresets = { ...storedData.viewPresets }
-        if (storedData.selectedPreset) this.selectedPreset = storedData.selectedPreset
+        const keysToHydrate = [
+          'players',
+          'teams',
+          'matches',
+          'isDarkMode',
+          'isNavigationMini',
+          'jsonSavePath',
+          'lastRoute',
+          'viewVisibility',
+          'viewPresets',
+          'selectedPreset'
+        ]
+
+        const dataToPatch = {}
+        for (const key of keysToHydrate) {
+          if (storedData[key] !== undefined) {
+            dataToPatch[key] = storedData[key]
+          }
+        }
+
+        this.$patch(dataToPatch)
 
         this._isInitialized = true
+        console.log('App state initialized from storage.')
       } catch (error) {
         console.error('Failed to initialize store from electron-store:', error)
       }
@@ -81,7 +90,10 @@ export const useAppStateStore = defineStore('appState', {
         }
       }
     },
-
+    setLastRoute(routePath) {
+      this.lastRoute = routePath
+      this.persistKey('lastRoute', routePath)
+    },
     initializeViewVisibility(views) {
       let needsPersist = false
       views.forEach((view) => {
@@ -157,14 +169,9 @@ export const useAppStateStore = defineStore('appState', {
     },
 
     clearAllData() {
-      const resetData = {
-        players: createInitialPlayerState(),
-        teams: initializeTeams(),
-        matches: createInitialMatchState()
-      }
-
-      Object.assign(this, resetData)
-      this.persistMultipleKeys(resetData)
+      this.clearData('teams')
+      this.clearData('players')
+      this.clearData('matches')
     },
 
     toggleTheme(value) {
@@ -250,59 +257,15 @@ export const useAppStateStore = defineStore('appState', {
       this.matches = { ...this.matches, ...matchesData }
       this.persistKey('matches', this.matches)
     },
-    clearTeams() {
-      this.teams = initializeTeams()
-      this.persistKey('teams', this.teams)
-    },
+    clearData(key) {
+      let initialData
+      if (key === 'teams') initialData = initializeTeams()
+      else if (key === 'players') initialData = createInitialPlayerState()
+      else if (key === 'matches') initialData = createInitialMatchState()
+      else return
 
-    clearPlayers() {
-      this.players = createInitialPlayerState()
-      this.persistKey('players', this.players)
-    },
-    clearMatches() {
-      this.matches = createInitialMatchState()
-      this.persistKey('matches', this.matches)
+      this[key] = initialData
+      this.persistKey(key, this[key])
     }
   }
-})
-
-const initializeTeams = () => {
-  const teams = {}
-  for (let i = 1; i <= 32; i++) {
-    teams[i] = {
-      id: i,
-      teamImage: '',
-      flagImage: '',
-      teamName: '',
-      score: 0
-    }
-  }
-  return teams
-}
-
-const createInitialPlayerState = () => ({
-  playerName: '',
-  teamName: '',
-  favouriteWeapon: '',
-  economyScore: 0,
-  heroImage: '',
-  kills: 0,
-  deaths: 0,
-  assists: 0
-})
-
-const createMatchDetails = () => ({
-  matchTime: '',
-  leftTeamName: '',
-  rightTeamName: '',
-  leftTeamLogo: '',
-  rightTeamLogo: '',
-  leftTeamFlag: '',
-  rightTeamFlag: ''
-})
-
-const createInitialMatchState = () => ({
-  date: '',
-  firstMatch: createMatchDetails(),
-  secondMatch: createMatchDetails()
 })

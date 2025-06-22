@@ -7,7 +7,7 @@ const { showSuccess, showError, errorMsg, triggerSuccess, triggerError } = useNo
 const store = useAppStateStore()
 
 const clearPlayerData = () => {
-  store.clearPlayers()
+  store.clearData('players')
 }
 
 const createPlayerJson = async () => {

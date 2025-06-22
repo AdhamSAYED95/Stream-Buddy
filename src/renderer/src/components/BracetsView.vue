@@ -21,7 +21,7 @@ const transformTeamsForOutput = () => {
 }
 
 const clearTeamsData = () => {
-  store.clearTeams()
+  store.clearData('teams')
 }
 const createBracketsJson = async () => {
   const transformedData = transformTeamsForOutput()
