@@ -1,4 +1,4 @@
-# Stream Buddy Documentation
+# Stream Buddy 
 
 ## Overview
 
