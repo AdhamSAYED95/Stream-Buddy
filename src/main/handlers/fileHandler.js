@@ -1,5 +1,3 @@
-// src/main/handlers/fileHandlers.js
-
 import { ipcMain, dialog } from 'electron'
 import path from 'path'
 import * as fs from 'node:fs/promises'
