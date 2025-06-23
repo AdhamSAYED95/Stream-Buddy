@@ -39,6 +39,13 @@ watch(
     }
   }
 )
+watch(
+  () => store.isDarkMode,
+  (newValue) => {
+    theme.global.name.value = newValue ? 'dark' : 'light'
+  },
+  { immediate: true }
+)
 
 onMounted(async () => {
   await store.initializeStore()
@@ -58,13 +65,7 @@ onMounted(async () => {
     store.setUpdateStatus(status, info)
   })
 
-  watch(
-    () => store.isDarkMode,
-    (newValue) => {
-      theme.global.name.value = newValue ? 'dark' : 'light'
-    },
-    { immediate: true }
-  )
+  theme.global.name.value = store.isDarkMode ? 'dark' : 'light'
 })
 </script>
 
