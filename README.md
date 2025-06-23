@@ -1,4 +1,4 @@
-# Stream Buddy 
+# Stream Buddy
 
 ## Overview
 
@@ -73,6 +73,7 @@ electron-app/
 - Actions are provided for updating, clearing, and persisting state.
 
 **Example:**
+
 ```js
 const store = useAppStateStore()
 store.updatePlayers({ playerName: 'John' })
@@ -88,6 +89,7 @@ store.clearData('teams')
 - Each route maps to a view component and has a meta title.
 
 **Example:**
+
 ```js
 const routes = [
   { path: '/', component: HomeView },
@@ -126,10 +128,10 @@ const routes = [
 
 ## Error Handling & Logging
 
-- **Renderer process**:  
+- **Renderer process**:
   - Global error and unhandled promise rejection handlers send logs to main via IPC.
   - Vue’s `app.config.errorHandler` is set for component errors.
-- **Main process**:  
+- **Main process**:
   - Logs all errors and rejections using `electron-log`.
   - Logs are saved to `userData/logs/main.log`.
 
@@ -150,21 +152,25 @@ const routes = [
 ## Development & Build
 
 **Install dependencies:**
+
 ```sh
 npm install
 ```
 
 **Run in development:**
+
 ```sh
 npm run dev
 ```
 
 **Build for production:**
+
 ```sh
 npm run build
 ```
 
 **Build for specific platforms:**
+
 ```sh
 npm run build:win
 npm run build:mac

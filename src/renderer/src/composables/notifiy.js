@@ -22,3 +22,22 @@ export function useNotifications() {
     triggerError
   }
 }
+
+export function useSettingsNotifications() {
+  const showSnackbar = ref(false)
+  const snackbarText = ref('')
+  const snackbarColor = ref('success')
+
+  const showFeedback = (text, color) => {
+    snackbarText.value = text
+    snackbarColor.value = color
+    showSnackbar.value = true
+  }
+
+  return {
+    showSnackbar,
+    snackbarText,
+    snackbarColor,
+    showFeedback
+  }
+}
