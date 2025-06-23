@@ -83,7 +83,7 @@ export const useAppStateStore = defineStore('appState', {
       if (this.jsonSavePath === null) {
         try {
           const defaultPath = await window.api.getDefaultPath()
-          this.jsonSavePath = `${defaultPath}\\ViewsData`
+          this.jsonSavePath = defaultPath
           await this.persistKey('jsonSavePath', this.jsonSavePath)
         } catch (error) {
           console.error('Failed to get default path during initialization:', error)
@@ -187,7 +187,7 @@ export const useAppStateStore = defineStore('appState', {
     async selectJsonSavePath() {
       const selectedPath = await window.api.selectDirectory()
       if (selectedPath) {
-        this.jsonSavePath = `${selectedPath}\\ViewsData`
+        this.jsonSavePath = selectedPath
         await this.persistKey('jsonSavePath', this.jsonSavePath)
       }
     },
@@ -200,7 +200,7 @@ export const useAppStateStore = defineStore('appState', {
       })
       this.selectedPreset = null
       const defaultPath = await window.api.getDefaultPath()
-      this.jsonSavePath = `${defaultPath}\\ViewsData`
+      this.jsonSavePath = defaultPath
 
       await this.persistMultipleKeys({
         isDarkMode: this.isDarkMode,
