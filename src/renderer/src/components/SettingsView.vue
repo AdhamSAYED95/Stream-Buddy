@@ -115,6 +115,17 @@ const clearAllData = () => {
                     @update:model-value="(newValue) => store.setViewVisibility(view.name, newValue)"
                   ></v-switch>
                 </div>
+                <div v-for="view in store.customViews" :key="view.name" class="mb-2">
+                  <v-switch
+                    v-model="store.viewVisibility[view.name]"
+                    :prepend-icon="view.icon"
+                    :label="`${view.title} (${store.viewVisibility[view.name] ? 'Visible' : 'Hidden'})`"
+                    color="primary"
+                    inset
+                    hide-details
+                    @update:model-value="(newValue) => store.setViewVisibility(view.name, newValue)"
+                  ></v-switch>
+                </div>
               </v-card-text>
             </v-card>
           </v-col>

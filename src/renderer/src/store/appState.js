@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { v4 as uuidv4 } from 'uuid'
 import {
   createInitialMatchState,
   createInitialPlayerState,
@@ -17,6 +18,7 @@ export const useAppStateStore = defineStore('appState', {
     lastRoute: '/',
     viewVisibility: {},
     viewPresets: {},
+    customViews: [],
     selectedPreset: null,
     appVersion: '',
     updateStatus: '',
@@ -40,7 +42,8 @@ export const useAppStateStore = defineStore('appState', {
           'lastRoute',
           'viewVisibility',
           'viewPresets',
-          'selectedPreset'
+          'selectedPreset',
+          'customViews'
         ]
 
         const dataToPatch = {}
@@ -54,6 +57,8 @@ export const useAppStateStore = defineStore('appState', {
 
         this._isInitialized = true
         console.log('App state initialized from storage.')
+        console.log(this.customViews)
+        console.log(this.viewVisibility)
       } catch (error) {
         console.error('Failed to initialize store from electron-store:', error)
       }
@@ -76,6 +81,123 @@ export const useAppStateStore = defineStore('appState', {
         }
       } catch (error) {
         console.error('Failed to persist multiple keys:', error)
+      }
+    },
+    addCustomView(view) {
+      if (view && view.id && view.name) {
+        const viewWithSections = { ...view, sections: [] }
+        this.customViews.push(viewWithSections)
+        this.persistKey('customViews', this.customViews)
+      }
+    },
+    addSection(viewId, sectionName) {
+      const view = this.customViews.find((v) => v.id === viewId)
+      if (view) {
+        view.sections.push({
+          id: uuidv4(), // Unique ID for the section
+          name: sectionName,
+          fields: [] // Initialize with an empty fields array
+        })
+        this.persistKey('customViews', this.customViews)
+      }
+    },
+    deleteSection(viewId, sectionId) {
+      const view = this.customViews.find((v) => v.id === viewId)
+      if (view) {
+        const index = view.sections.findIndex((s) => s.id === sectionId)
+        if (index !== -1) {
+          view.sections.splice(index, 1)
+          this.persistKey('customViews', this.customViews)
+        }
+      }
+    },
+    addField(viewId, sectionId, fieldData) {
+      const view = this.customViews.find((v) => v.id === viewId)
+      if (view) {
+        const section = view.sections.find((s) => s.id === sectionId)
+        if (section) {
+          section.fields.push({
+            id: uuidv4(), // Unique ID for the field
+            ...fieldData,
+            value: '' // Default value
+          })
+          this.persistKey('customViews', this.customViews)
+        }
+      }
+    },
+
+    // --- NEW: Action to delete a field from a section ---
+    deleteField(viewId, sectionId, fieldId) {
+      const view = this.customViews.find((v) => v.id === viewId)
+      if (view) {
+        const section = view.sections.find((s) => s.id === sectionId)
+        if (section) {
+          const index = section.fields.findIndex((f) => f.id === fieldId)
+          if (index !== -1) {
+            section.fields.splice(index, 1)
+            this.persistKey('customViews', this.customViews)
+          }
+        }
+      }
+    },
+
+    // --- NEW: Action to update any field's data (name or value) ---
+    updateFieldData(viewId, sectionId, fieldId, newFieldValue) {
+      const view = this.customViews.find((v) => v.id === viewId)
+      if (view) {
+        const section = view.sections.find((s) => s.id === sectionId)
+        if (section) {
+          const field = section.fields.find((f) => f.id === fieldId)
+          if (field) {
+            field.value = newFieldValue
+            // This action is called frequently, so you might want to implement
+            // a debounced persistence strategy later for performance.
+            this.persistKey('customViews', this.customViews)
+          }
+        }
+      }
+    },
+
+    // --- NEW: Action to update a section's name ---
+    updateSectionName(viewId, sectionId, newName) {
+      const view = this.customViews.find((v) => v.id === viewId)
+      if (view) {
+        const section = view.sections.find((s) => s.id === sectionId)
+        if (section) {
+          section.name = newName
+          this.persistKey('customViews', this.customViews)
+        }
+      }
+    },
+    updateCustomViewContent(viewId, newContent) {
+      const viewToUpdate = this.customViews.find((view) => view.id === viewId)
+      if (viewToUpdate) {
+        viewToUpdate.content = newContent
+        // Persist the entire customViews array to save the change.
+        this.persistKey('customViews', this.customViews)
+      } else {
+        console.warn(`Custom view with ID "${viewId}" not found. Could not update content.`)
+      }
+    },
+
+    // --- NEW: Action to delete a custom view ---
+    deleteCustomView(viewId) {
+      const index = this.customViews.findIndex((v) => v.id === viewId)
+      if (index !== -1) {
+        const viewName = this.customViews[index].name // Get the name before removing it
+
+        // Remove the view itself
+        this.customViews.splice(index, 1)
+
+        // --- THIS IS THE FIX ---
+        // Also remove its entry from the visibility object
+        delete this.viewVisibility[viewName]
+
+        // Persist both changes together
+        this.persistMultipleKeys({
+          customViews: this.customViews,
+          viewVisibility: this.viewVisibility
+        })
       }
     },
 
@@ -155,6 +277,9 @@ export const useAppStateStore = defineStore('appState', {
         allNavigableViews.forEach((view) => {
           this.viewVisibility[view.name] = true
         })
+        this.customViews.forEach((view) => {
+          this.viewVisibility[view.name] = true
+        })
         if (this.selectedPreset === presetName) {
           this.selectedPreset = null
         }
@@ -196,6 +321,9 @@ export const useAppStateStore = defineStore('appState', {
       this.isDarkMode = false
       this.isNavigationMini = true
       allNavigableViews.forEach((view) => {
+        this.viewVisibility[view.name] = true
+      })
+      this.customViews.forEach((view) => {
         this.viewVisibility[view.name] = true
       })
       this.selectedPreset = null
