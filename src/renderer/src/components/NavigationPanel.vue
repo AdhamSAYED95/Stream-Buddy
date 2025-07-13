@@ -46,12 +46,7 @@ watch(
   () => store._isInitialized,
   (isInitialized) => {
     if (isInitialized) {
-      // Once the store has loaded its data, register all the custom routes
       store.customViews.forEach(registerRoute)
-
-      // After registering, tell the router to re-evaluate the current route.
-      // This makes sure that if you reloaded the app on a custom view URL,
-      // it will now render correctly instead of showing a "not found" page.
       router.isReady().then(() => {
         router.replace(router.currentRoute.value.fullPath).catch((err) => {
           if (err.name !== 'NavigationDuplicated' && !err.message.includes('cancelled')) {
@@ -139,7 +134,9 @@ function confirmDeleteView() {
         <v-list density="compact" nav class="nav-list">
           <template v-for="item in allNavigableViews" :key="item.name">
             <RouterLink v-if="store.viewVisibility[item.name]" :to="item.path" class="nav-link">
-              <v-list-item :prepend-icon="item.icon" :title="item.title" />
+              <v-list-item :prepend-icon="item.icon">
+                <v-list-item-title>{{ item.title }}</v-list-item-title>
+              </v-list-item>
             </RouterLink>
           </template>
 
@@ -168,7 +165,9 @@ function confirmDeleteView() {
           />
 
           <RouterLink to="/Settings" class="nav-link settings-link">
-            <v-list-item prepend-icon="mdi-cog" title="Settings" />
+            <v-list-item prepend-icon="mdi-cog">
+              <v-list-item-title>Settings</v-list-item-title>
+            </v-list-item>
           </RouterLink>
         </v-list>
       </v-navigation-drawer>
