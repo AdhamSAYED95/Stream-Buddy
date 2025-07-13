@@ -1,6 +1,6 @@
 {
   "name": "stream-buddy",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "description": "An Electron application with Vue",
   "main": "./out/main/index.js",
   "author": "example.com",
@@ -28,6 +28,7 @@
     "pinia": "^3.0.2",
     "uuid": "^11.1.0",
     "vue-router": "^4.5.1",
+    "vuedraggable": "^4.1.0",
     "vuetify": "^3.8.7"
   },
   "devDependencies": {

@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAppStateStore } from '../store/appState'
+import draggable from 'vuedraggable'
 
 const route = useRoute()
 const store = useAppStateStore()
@@ -12,12 +13,27 @@ const currentCustomView = computed(() => store.customViews.find((view) => view.i
 
 const viewTitle = computed(() => currentCustomView.value?.title)
 
+const editingMode = computed(() => !!store.viewEditingStates[viewId.value])
+
+const draggableSections = computed({
+  get() {
+    return currentCustomView.value?.sections || []
+  },
+  set(newSections) {
+    store.updateViewSections(viewId.value, newSections)
+  }
+})
+
+const triggerSave = () => {
+  store.updateViewSections(viewId.value, draggableSections.value)
+}
+
 const dialog = ref(false)
 const dialogMode = ref('section')
 const currentSectionId = ref(null)
 const newItemName = ref('')
 const newItemType = ref('text')
-const fieldTypes = ['text', 'integer', 'image']
+const fieldTypes = ['text', 'number', 'image']
 
 const openAddSectionDialog = () => {
   dialogMode.value = 'section'
@@ -59,105 +75,166 @@ const getFileName = (path) => {
   if (!path || typeof path !== 'string') return ''
   return path.split(/[\\/]/).pop()
 }
+
+const toggleSectionLayout = (sectionId) => {
+  store.toggleSectionLayout(viewId.value, sectionId)
+}
 </script>
 
 <template>
   <div class="custom-view-builder">
     <div class="fixed-header">
       <h1>{{ viewTitle }}</h1>
-      <v-btn color="primary" class="mb-4 mr-4" @click="openAddSectionDialog">
+      <v-btn v-if="editingMode" color="primary" class="mb-4 mr-4" @click="openAddSectionDialog">
         <v-icon left>mdi-plus</v-icon>
         Add Section
+      </v-btn>
+      <v-btn
+        v-if="!editingMode"
+        color="primary"
+        class="mb-4"
+        @click="store.toggleViewEditingState(viewId)"
+      >
+        Edit Mode
+      </v-btn>
+      <v-btn
+        v-if="editingMode"
+        color="primary"
+        class="mb-4"
+        @click="store.toggleViewEditingState(viewId)"
+      >
+        Save Changes
       </v-btn>
     </div>
 
     <div class="sections-container">
-      <v-alert v-if="!currentCustomView?.sections?.length" type="info" variant="tonal" class="ma-4">
-        No sections have been added yet. Click "Add Section" to begin.
+      <v-alert v-if="!draggableSections.length" type="info" variant="tonal" class="ma-4">
+        No sections have been added yet. Click "Add Section" to begin Or Enter Edit Mode to add
+        sections.
       </v-alert>
 
-      <v-card
-        v-for="section in currentCustomView?.sections"
-        :key="section.id"
-        class="section-card"
-        flat
+      <draggable
+        v-model="draggableSections"
+        item-key="id"
+        handle=".section-drag-handle"
+        :animation="200"
       >
-        <v-card-title class="panel-title d-flex align-center justify-space-between">
-          <v-text-field
-            :model-value="section.name"
-            variant="plain"
-            hide-details
-            density="compact"
-            class="title-input"
-            @update:model-value="(newName) => store.updateSectionName(viewId, section.id, newName)"
-          ></v-text-field>
-          <div>
-            <v-btn
-              variant="text"
-              color="blue"
-              size="small"
-              icon="mdi-plus-box-outline"
-              @click="openAddFieldDialog(section.id)"
-            ></v-btn>
-            <v-btn
-              icon="mdi-delete-outline"
-              variant="text"
-              color="red"
-              size="small"
-              @click="store.deleteSection(viewId, section.id)"
-            ></v-btn>
-          </div>
-        </v-card-title>
-        <v-card-text>
-          <v-alert v-if="!section.fields.length" density="compact" class="mb-2">
-            No fields in this section.
-          </v-alert>
-          <div v-for="field in section.fields" :key="field.id" class="field-wrapper">
-            <v-text-field
-              v-if="field.type === 'text'"
-              :label="field.name"
-              :model-value="field.value"
-              hide-details="auto"
-              class="custom-text-input"
-              flat
-              @update:model-value="
-                (value) => store.updateFieldData(viewId, section.id, field.id, value)
-              "
-            ></v-text-field>
-            <v-text-field
-              v-if="field.type === 'integer'"
-              :label="field.name"
-              :model-value="field.value"
-              type="number"
-              hide-details="auto"
-              class="custom-text-input"
-              flat
-              @update:model-value="
-                (value) => store.updateFieldData(viewId, section.id, field.id, value)
-              "
-            ></v-text-field>
-            <v-text-field
-              v-if="field.type === 'image'"
-              :label="field.name"
-              :model-value="getFileName(field.value)"
-              readonly
-              hide-details="auto"
-              class="custom-text-input"
-              append-inner-icon="mdi-file-image"
-              flat
-              clearable
-              @click="selectImageFile(section.id, field.id)"
-            ></v-text-field>
-            <v-btn
-              variant="text"
-              size="x-small"
-              icon="mdi-close"
-              class="delete-field-btn"
-              @click="store.deleteField(viewId, section.id, field.id)"
-            ></v-btn>
-          </div>
-        </v-card-text>
-      </v-card>
+        <template #item="{ element: section }">
+          <v-card class="section-card" flat>
+            <v-card-title class="panel-title d-flex align-center justify-space-between">
+              <v-icon v-if="editingMode" class="section-drag-handle">mdi-drag-horizontal</v-icon>
+              <v-text-field
+                :model-value="section.name"
+                variant="plain"
+                hide-details
+                density="compact"
+                class="title-input"
+                @update:model-value="
+                  (newName) => store.updateSectionName(viewId, section.id, newName)
+                "
+              ></v-text-field>
+              <div class="section-controls">
+                <v-btn
+                  v-if="editingMode && section.fields.length > 0"
+                  variant="text"
+                  size="small"
+                  :icon="
+                    section.layout === 'vertical' ? 'mdi-view-sequential' : 'mdi-view-parallel'
+                  "
+                  :title="
+                    section.layout === 'vertical'
+                      ? 'Switch to horizontal layout'
+                      : 'Switch to vertical layout'
+                  "
+                  @click="toggleSectionLayout(section.id)"
+                ></v-btn>
+                <v-btn
+                  v-if="editingMode"
+                  variant="text"
+                  color="blue"
+                  size="small"
+                  icon="mdi-plus-box-outline"
+                  @click="openAddFieldDialog(section.id)"
+                ></v-btn>
+                <v-btn
+                  v-if="editingMode"
+                  icon="mdi-delete-outline"
+                  variant="text"
+                  color="red"
+                  size="small"
+                  @click="store.deleteSection(viewId, section.id)"
+                ></v-btn>
+              </div>
+            </v-card-title>
+            <v-card-text>
+              <v-alert v-if="!section.fields.length" density="compact" class="mb-2">
+                No fields in this section.
+              </v-alert>
+
+              <draggable
+                v-model="section.fields"
+                item-key="id"
+                handle=".field-drag-handle"
+                :animation="200"
+                :class="[
+                  'fields-container',
+                  section.layout === 'vertical' ? 'fields-vertical' : 'fields-horizontal'
+                ]"
+                @end="triggerSave"
+              >
+                <template #item="{ element: field }">
+                  <div class="field-wrapper">
+                    <v-icon v-if="editingMode" class="field-drag-handle">mdi-drag</v-icon>
+                    <v-text-field
+                      v-if="field.type === 'text'"
+                      :label="field.name"
+                      :model-value="field.value"
+                      hide-details="auto"
+                      class="custom-text-input"
+                      flat
+                      @update:model-value="
+                        (value) => store.updateFieldData(viewId, section.id, field.id, value)
+                      "
+                    ></v-text-field>
+                    <v-text-field
+                      v-if="field.type === 'number'"
+                      :label="field.name"
+                      :model-value="field.value"
+                      type="number"
+                      hide-details="auto"
+                      class="custom-text-input"
+                      flat
+                      @update:model-value="
+                        (value) => store.updateFieldData(viewId, section.id, field.id, value)
+                      "
+                    ></v-text-field>
+                    <v-text-field
+                      v-if="field.type === 'image'"
+                      :label="field.name"
+                      :model-value="getFileName(field.value)"
+                      readonly
+                      hide-details="auto"
+                      class="custom-text-input"
+                      append-inner-icon="mdi-file-image"
+                      flat
+                      clearable
+                      @click="selectImageFile(section.id, field.id)"
+                    ></v-text-field>
+                    <v-btn
+                      v-if="editingMode"
+                      variant="text"
+                      size="x-small"
+                      icon="mdi-close"
+                      class="delete-field-btn"
+                      @click="store.deleteField(viewId, section.id, field.id)"
+                    ></v-btn>
+                  </div>
+                </template>
+              </draggable>
+            </v-card-text>
+          </v-card>
+        </template>
+      </draggable>
     </div>
 
     <v-dialog v-model="dialog" persistent max-width="500px">
@@ -247,11 +324,47 @@ const getFileName = (path) => {
   font-weight: bold;
 }
 
+.section-controls {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+/* Base styles for fields container */
+.fields-container {
+  align-items: flex-start;
+}
+
+/* Horizontal layout (default) */
+.fields-horizontal {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+/* Vertical layout */
+.fields-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 .field-wrapper {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 12px;
+}
+
+/* Field wrapper styles for horizontal layout */
+.fields-horizontal .field-wrapper {
+  flex: 1 1 auto;
+  min-width: 200px;
+}
+
+/* Field wrapper styles for vertical layout */
+.fields-vertical .field-wrapper {
+  width: 100%;
+  flex: none;
 }
 
 .custom-text-input {
@@ -268,5 +381,16 @@ const getFileName = (path) => {
 
 .mr-4 {
   margin-right: 16px;
+}
+
+.section-drag-handle,
+.field-drag-handle {
+  cursor: grab;
+  color: rgba(var(--v-theme-on-surface), 0.4);
+  margin-right: 12px;
+}
+.section-drag-handle:hover,
+.field-drag-handle:hover {
+  color: rgba(var(--v-theme-on-surface), 0.8);
 }
 </style>
