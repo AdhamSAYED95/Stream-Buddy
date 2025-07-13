@@ -1,10 +1,13 @@
 <script setup>
 import { useAppStateStore } from '../store/appState'
+import { useRouter } from 'vue-router'
 import { allNavigableViews } from '../constants/constants'
 import { usePresets } from '../composables/preset'
 import { useSettingsNotifications } from '../composables/notifiy'
 
 const store = useAppStateStore()
+
+const router = useRouter()
 
 const { showSnackbar, snackbarText, snackbarColor, showFeedback } = useSettingsNotifications()
 
@@ -23,6 +26,11 @@ const {
   deletePreset,
   handlePresetChoice
 } = usePresets(store, showFeedback)
+
+const editView = (path, viewId) => {
+  store.editMode(viewId)
+  router.replace(path)
+}
 
 const checkForUpdates = () => {
   store.checkForUpdates()
@@ -119,10 +127,12 @@ const clearAllData = () => {
                   <v-switch
                     v-model="store.viewVisibility[view.name]"
                     :prepend-icon="view.icon"
+                    append-icon="mdi-pencil"
                     :label="`${view.title} (${store.viewVisibility[view.name] ? 'Visible' : 'Hidden'})`"
                     color="primary"
-                    inset
                     hide-details
+                    inset
+                    @click:append="editView(view.path, view.id)"
                     @update:model-value="(newValue) => store.setViewVisibility(view.name, newValue)"
                   ></v-switch>
                 </div>

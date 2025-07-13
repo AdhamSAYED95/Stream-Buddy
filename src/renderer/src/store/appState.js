@@ -19,6 +19,7 @@ export const useAppStateStore = defineStore('appState', {
     viewVisibility: {},
     viewPresets: {},
     customViews: [],
+    viewEditingStates: {},
     selectedPreset: null,
     appVersion: '',
     updateStatus: '',
@@ -43,7 +44,8 @@ export const useAppStateStore = defineStore('appState', {
           'viewVisibility',
           'viewPresets',
           'selectedPreset',
-          'customViews'
+          'customViews',
+          'viewEditingStates'
         ]
 
         const dataToPatch = {}
@@ -82,6 +84,20 @@ export const useAppStateStore = defineStore('appState', {
       } catch (error) {
         console.error('Failed to persist multiple keys:', error)
       }
+    },
+    editMode(viewId) {
+      this.viewEditingStates[viewId] = true
+      this.persistKey('viewEditingStates', this.viewEditingStates)
+    },
+    toggleViewEditingState(viewId) {
+      if (this.viewEditingStates[viewId] === undefined) {
+        // If it's the first time, set it to true (enter edit mode)
+        this.viewEditingStates[viewId] = true
+      } else {
+        // Otherwise, just flip the current value
+        this.viewEditingStates[viewId] = !this.viewEditingStates[viewId]
+      }
+      this.persistKey('viewEditingStates', this.viewEditingStates)
     },
     addCustomView(view) {
       if (view && view.id && view.name) {
@@ -140,6 +156,16 @@ export const useAppStateStore = defineStore('appState', {
         }
       }
     },
+    toggleSectionLayout(viewId, sectionId) {
+      const view = this.customViews.find((v) => v.id === viewId)
+      if (view) {
+        const section = view.sections.find((s) => s.id === sectionId)
+        if (section) {
+          section.layout = section.layout === 'horizontal' ? 'vertical' : 'horizontal'
+          this.persistKey('customViews', this.customViews)
+        }
+      }
+    },
 
     // --- NEW: Action to update any field's data (name or value) ---
     updateFieldData(viewId, sectionId, fieldId, newFieldValue) {
@@ -169,16 +195,6 @@ export const useAppStateStore = defineStore('appState', {
         }
       }
     },
-    updateCustomViewContent(viewId, newContent) {
-      const viewToUpdate = this.customViews.find((view) => view.id === viewId)
-      if (viewToUpdate) {
-        viewToUpdate.content = newContent
-        // Persist the entire customViews array to save the change.
-        this.persistKey('customViews', this.customViews)
-      } else {
-        console.warn(`Custom view with ID "${viewId}" not found. Could not update content.`)
-      }
-    },
 
     // --- NEW: Action to delete a custom view ---
     deleteCustomView(viewId) {
@@ -193,11 +209,21 @@ export const useAppStateStore = defineStore('appState', {
         // Also remove its entry from the visibility object
         delete this.viewVisibility[viewName]
 
+        delete this.viewEditingStates[viewId]
+
         // Persist both changes together
         this.persistMultipleKeys({
           customViews: this.customViews,
-          viewVisibility: this.viewVisibility
+          viewVisibility: this.viewVisibility,
+          viewEditingStates: this.viewEditingStates
         })
+      }
+    },
+    updateViewSections(viewId, newSectionsArray) {
+      const view = this.customViews.find((v) => v.id === viewId)
+      if (view) {
+        view.sections = newSectionsArray
+        this.persistKey('customViews', this.customViews)
       }
     },
 
