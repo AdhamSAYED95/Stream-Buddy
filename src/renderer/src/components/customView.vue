@@ -2,14 +2,66 @@
 import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAppStateStore } from '../store/appState'
+import { useNotifications } from '../composables/notifiy'
 import draggable from 'vuedraggable'
 
 const route = useRoute()
 const store = useAppStateStore()
 
+const { showSuccess, showError, errorMsg, triggerSuccess, triggerError } = useNotifications()
+
 const viewId = computed(() => route.meta.viewId)
 
 const currentCustomView = computed(() => store.customViews.find((view) => view.id === viewId.value))
+
+const dialogTitle = computed(() => {
+  switch (dialogMode.value) {
+    case 'addSection':
+      return 'Add New Section'
+    case 'addField':
+      return 'Add New Field'
+    case 'editSection':
+      return 'Edit Section Name'
+    case 'editField':
+      return 'Edit Field Name'
+    default:
+      return '' // Fallback title
+  }
+})
+
+const logViewData = async () => {
+  if (currentCustomView.value && currentCustomView.value.sections) {
+    const formattedData = currentCustomView.value.sections.reduce((acc, section) => {
+      const fields = section.fields.reduce((fieldAcc, field) => {
+        fieldAcc[field.name] = field.value
+        return fieldAcc
+      }, {})
+      acc[section.name] = fields
+
+      return acc
+    }, {})
+
+    const jsonData = JSON.stringify(formattedData, null, 2)
+    try {
+      const created = await window.api.createFile(
+        `${store.jsonSavePath}/${viewTitle.value}.json`,
+        jsonData
+      )
+      if (created) {
+        triggerSuccess()
+      } else {
+        triggerError('Could not write file')
+      }
+    } catch (e) {
+      triggerError(e.message || 'Unknown error')
+      console.error('Failed to create PlayersStats.json:', e)
+    }
+  }
+}
+
+const clearCustomView = () => {
+  store.clearCustomView(viewId.value)
+}
 
 const viewTitle = computed(() => currentCustomView.value?.title)
 
@@ -31,6 +83,7 @@ const triggerSave = () => {
 const dialog = ref(false)
 const dialogMode = ref('section')
 const currentSectionId = ref(null)
+const currentFieldId = ref(null)
 const newItemName = ref('')
 const newItemType = ref('text')
 const fieldTypes = ['text', 'number', 'image']
@@ -49,16 +102,55 @@ const openAddFieldDialog = (sectionId) => {
   dialog.value = true
 }
 
+const openEditSectionDialog = (sectionId) => {
+  dialogMode.value = 'editSection'
+  newItemName.value = ''
+  newItemType.value = 'text'
+  currentSectionId.value = sectionId
+  dialog.value = true
+}
+
+const openEditFieldDialog = (sectionId, fieldId) => {
+  dialogMode.value = 'editField'
+  newItemName.value = ''
+  newItemType.value = 'text'
+  currentSectionId.value = sectionId
+  currentFieldId.value = fieldId
+  dialog.value = true
+}
+
 const handleDialogSave = () => {
   if (!newItemName.value) return
 
-  if (dialogMode.value === 'section') {
-    store.addSection(viewId.value, newItemName.value)
-  } else if (dialogMode.value === 'field' && currentSectionId.value) {
-    store.addField(viewId.value, currentSectionId.value, {
-      name: newItemName.value,
-      type: newItemType.value
-    })
+  switch (dialogMode.value) {
+    case 'Add New Section':
+      store.addSection(viewId.value, newItemName.value)
+      break
+    case 'field':
+      if (currentSectionId.value) {
+        store.addField(viewId.value, currentSectionId.value, {
+          name: newItemName.value,
+          type: newItemType.value
+        })
+      }
+      break
+    case 'editSection':
+      if (currentSectionId.value) {
+        store.updateSectionName(viewId.value, currentSectionId.value, newItemName.value)
+      }
+      break
+    case 'editField':
+      if (currentSectionId.value && currentFieldId.value) {
+        store.updateFieldName(
+          viewId.value,
+          currentSectionId.value,
+          currentFieldId.value,
+          newItemName.value
+        )
+      }
+      break
+    default:
+      break
   }
 
   dialog.value = false
@@ -85,26 +177,47 @@ const toggleSectionLayout = (sectionId) => {
   <div class="custom-view-builder">
     <div class="fixed-header">
       <h1>{{ viewTitle }}</h1>
-      <v-btn v-if="editingMode" color="primary" class="mb-4 mr-4" @click="openAddSectionDialog">
-        <v-icon left>mdi-plus</v-icon>
-        Add Section
+      <v-btn color="primary" class="mb-4 mr-16" @click="logViewData">
+        Create {{ viewTitle }} file
       </v-btn>
-      <v-btn
-        v-if="!editingMode"
-        color="primary"
-        class="mb-4"
-        @click="store.toggleViewEditingState(viewId)"
-      >
-        Edit Mode
-      </v-btn>
-      <v-btn
-        v-if="editingMode"
-        color="primary"
-        class="mb-4"
-        @click="store.toggleViewEditingState(viewId)"
-      >
-        Save Changes
-      </v-btn>
+      <v-btn color="red" class="mb-4" @click="clearCustomView">Clear {{ viewTitle }} Data</v-btn>
+      <v-snackbar v-model="showSuccess" :timeout="4000" top color="success">
+        {{ viewTitle }} File created successfully!
+      </v-snackbar>
+      <v-snackbar v-model="showError" :timeout="5000" top color="error">
+        {{ errorMsg }}
+        <template #action="{ attrs }">
+          <v-btn text v-bind="attrs" @click="showError = false"> Close </v-btn>
+        </template>
+      </v-snackbar>
+
+      <div class="d-flex align-center ga-2">
+        <!-- EDIT MODE BUTTON -->
+        <v-tooltip :text="editingMode ? 'Save Changes' : 'Edit Mode'" location="bottom">
+          <template #activator="{ props }">
+            <v-btn
+              v-bind="props"
+              :icon="editingMode ? 'mdi-content-save-check' : 'mdi-pencil'"
+              :color="editingMode ? 'primary' : undefined"
+              variant="text"
+              @click="store.toggleViewEditingState(viewId)"
+            ></v-btn>
+          </template>
+        </v-tooltip>
+
+        <!-- ADD SECTION BUTTON -->
+        <v-tooltip text="Add Section" location="bottom">
+          <template #activator="{ props }">
+            <v-btn
+              v-if="editingMode"
+              v-bind="props"
+              icon="mdi-plus-box-outline"
+              variant="text"
+              @click="openAddSectionDialog"
+            ></v-btn>
+          </template>
+        </v-tooltip>
+      </div>
     </div>
 
     <div class="sections-container">
@@ -134,6 +247,15 @@ const toggleSectionLayout = (sectionId) => {
                 "
               ></v-text-field>
               <div class="section-controls">
+                <v-btn
+                  v-if="editingMode"
+                  variant="text"
+                  color="grey"
+                  size="small"
+                  icon="mdi-form-select"
+                  title="Edit Section Name"
+                  @click="openEditSectionDialog(section.id)"
+                ></v-btn>
                 <v-btn
                   v-if="editingMode && section.fields.length > 0"
                   variant="text"
@@ -185,6 +307,15 @@ const toggleSectionLayout = (sectionId) => {
                 <template #item="{ element: field }">
                   <div class="field-wrapper">
                     <v-icon v-if="editingMode" class="field-drag-handle">mdi-drag</v-icon>
+                    <v-btn
+                      v-if="editingMode"
+                      variant="text"
+                      color="grey"
+                      size="small"
+                      icon="mdi-form-select"
+                      title="Edit Field Name"
+                      @click="openEditFieldDialog(section.id, field.id)"
+                    ></v-btn>
                     <v-text-field
                       v-if="field.type === 'text'"
                       :label="field.name"
@@ -240,9 +371,7 @@ const toggleSectionLayout = (sectionId) => {
     <v-dialog v-model="dialog" persistent max-width="500px">
       <v-card>
         <v-card-title>
-          <span class="text-h5">{{
-            dialogMode === 'section' ? 'Add New Section' : 'Add New Field'
-          }}</span>
+          <span class="text-h5">{{ dialogTitle }}</span>
         </v-card-title>
         <v-card-text>
           <v-text-field
@@ -278,7 +407,6 @@ const toggleSectionLayout = (sectionId) => {
 <style scoped>
 .custom-view-builder {
   padding: 20px;
-  padding-top: 100px; /* Add padding to push content below the fixed header */
   font-family: Arial, sans-serif;
 }
 
@@ -288,25 +416,22 @@ const toggleSectionLayout = (sectionId) => {
   left: 56px;
   right: 0;
   z-index: 999;
-  background-color: rgb(var(--v-theme-surface));
   padding: 16px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   transition: left 0.2s ease;
-  display: flex;
-  align-items: center;
 }
 
-.fixed-header h1 {
+h1 {
+  text-align: center;
+  margin-bottom: 20px;
   color: rgb(var(--v-theme-on-surface));
-  margin: 0;
-  margin-right: auto;
-  font-size: 1.5rem;
 }
 
 .sections-container {
   width: 100%;
   max-width: 100%;
   margin: 0 auto;
+  padding-top: 190px;
+  transition: margin-left 0.2s ease;
 }
 
 .section-card {
@@ -381,6 +506,9 @@ const toggleSectionLayout = (sectionId) => {
 
 .mr-4 {
   margin-right: 16px;
+}
+.mr-400 {
+  margin-right: 400px;
 }
 
 .section-drag-handle,

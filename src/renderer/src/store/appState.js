@@ -190,8 +190,22 @@ export const useAppStateStore = defineStore('appState', {
       if (view) {
         const section = view.sections.find((s) => s.id === sectionId)
         if (section) {
+          console.log(sectionId, newName)
           section.name = newName
           this.persistKey('customViews', this.customViews)
+        }
+      }
+    },
+    updateFieldName(viewId, sectionId, fieldId, newName) {
+      const view = this.customViews.find((v) => v.id === viewId)
+      if (view) {
+        const section = view.sections.find((s) => s.id === sectionId)
+        if (section) {
+          const field = section.fields.find((f) => f.id === fieldId)
+          if (field) {
+            field.name = newName
+            this.persistKey('customViews', this.customViews)
+          }
         }
       }
     },
@@ -318,11 +332,37 @@ export const useAppStateStore = defineStore('appState', {
         console.warn(`Preset '${presetName}' not found for deletion.`)
       }
     },
+    clearAllCustomViewFields() {
+      this.customViews.forEach((view) => {
+        if (view.sections && view.sections.length > 0) {
+          view.sections.forEach((section) => {
+            if (section.fields && section.fields.length > 0) {
+              section.fields.forEach((field) => {
+                field.value = ''
+              })
+            }
+          })
+        }
+      })
+    },
+    clearCustomView(viewId) {
+      const viewIndex = this.customViews.findIndex((v) => v.id === viewId)
+      if (viewIndex !== -1) {
+        const view = this.customViews[viewIndex]
+        view.sections.forEach((section) => {
+          section.fields.forEach((field) => {
+            field.value = ''
+          })
+        })
+        this.persistKey('customViews', this.customViews)
+      }
+    },
 
     clearAllData() {
       this.clearData('teams')
       this.clearData('players')
       this.clearData('matches')
+      this.clearAllCustomViewFields()
     },
 
     toggleTheme(value) {

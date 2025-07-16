@@ -1,16 +1,14 @@
 <script setup>
-import { useAppStateStore } from '../store/appState'
 import { useRouter } from 'vue-router'
+import { useAppStateStore } from '../store/appState'
 import { allNavigableViews } from '../constants/constants'
 import { usePresets } from '../composables/preset'
 import { useSettingsNotifications } from '../composables/notifiy'
 
 const store = useAppStateStore()
-
 const router = useRouter()
 
 const { showSnackbar, snackbarText, snackbarColor, showFeedback } = useSettingsNotifications()
-
 const {
   createPresetDialog,
   newPresetName,
