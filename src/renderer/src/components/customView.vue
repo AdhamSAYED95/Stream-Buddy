@@ -89,13 +89,13 @@ const newItemType = ref('text')
 const fieldTypes = ['text', 'number', 'image']
 
 const openAddSectionDialog = () => {
-  dialogMode.value = 'section'
+  dialogMode.value = 'addSection'
   newItemName.value = ''
   dialog.value = true
 }
 
 const openAddFieldDialog = (sectionId) => {
-  dialogMode.value = 'field'
+  dialogMode.value = 'addField'
   newItemName.value = ''
   newItemType.value = 'text'
   currentSectionId.value = sectionId
@@ -123,10 +123,10 @@ const handleDialogSave = () => {
   if (!newItemName.value) return
 
   switch (dialogMode.value) {
-    case 'Add New Section':
+    case 'addSection':
       store.addSection(viewId.value, newItemName.value)
       break
-    case 'field':
+    case 'addField':
       if (currentSectionId.value) {
         store.addField(viewId.value, currentSectionId.value, {
           name: newItemName.value,
