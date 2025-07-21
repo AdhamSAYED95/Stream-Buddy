@@ -29,20 +29,38 @@ const dialogTitle = computed(() => {
   }
 })
 
+const toCamelCase = (str) => {
+  if (!str) return ''
+  return str
+    .replace(/(?:^\w|[A-Z]|\b\w)/g, (word, index) => {
+      return index === 0 ? word.toLowerCase() : word.toUpperCase()
+    })
+    .replace(/\s+/g, '')
+}
+
 const logViewData = async () => {
   if (currentCustomView.value && currentCustomView.value.sections) {
     const formattedData = currentCustomView.value.sections.reduce((acc, section) => {
       const fields = section.fields.reduce((fieldAcc, field) => {
-        fieldAcc[field.name] = field.value
+        // Convert the field name to camelCase before using it as a key
+        const camelCaseFieldName = toCamelCase(field.name)
+        if (camelCaseFieldName) {
+          fieldAcc[camelCaseFieldName] = field.value
+        }
         return fieldAcc
       }, {})
-      acc[section.name] = fields
 
+      // Convert the section name to camelCase before using it as a key
+      const camelCaseSectionName = toCamelCase(section.name)
+      if (camelCaseSectionName) {
+        acc[camelCaseSectionName] = fields
+      }
       return acc
     }, {})
 
     const jsonData = JSON.stringify(formattedData, null, 2)
     try {
+      // The rest of your function remains the same
       const created = await window.api.createFile(
         `${store.jsonSavePath}/${viewTitle.value}.json`,
         jsonData
@@ -54,7 +72,7 @@ const logViewData = async () => {
       }
     } catch (e) {
       triggerError(e.message || 'Unknown error')
-      console.error('Failed to create PlayersStats.json:', e)
+      console.error(`Failed to create ${viewTitle.value}.json:`, e)
     }
   }
 }
